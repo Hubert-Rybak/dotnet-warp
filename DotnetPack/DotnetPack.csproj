@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>netcoreapp2.2</TargetFramework>
+
+        <PackAsTool>true</PackAsTool>
+        <ToolCommandName>dotnet-pack</ToolCommandName>
+        <PackageOutputPath>./nupkg</PackageOutputPath>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <None Remove="warp\windows-x64.warp-packer.exe" />
+      <Content Include="warp\windows-x64.warp-packer.exe">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="System.CommandLine.Experimental" Version="0.1.0-alpha-63621-01" />
+    </ItemGroup>
+
+</Project>
