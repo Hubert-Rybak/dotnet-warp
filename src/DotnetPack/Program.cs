@@ -10,6 +10,7 @@ namespace DotnetPack
 {
     internal class Program
     {
+        private static string _tempPublishPath;
         private const string PublishTempPath = "dotnetpack_temp";
 
         public class Options
@@ -17,7 +18,7 @@ namespace DotnetPack
             [Option('p', "project", Required = false, HelpText = "Project path")]
             public DirectoryInfo ProjectPath { get; set; }
 
-            [Option('r', "runtime", Required = false, HelpText = "Runtime (win-x64, linux-x64, osx-x64)")]
+            [Option('r', "runtime", Required = false, HelpText = "Runtime")]
             public string Runtime { get; set; }
 
             [Option('v', "verbose", Required = false, HelpText = "Set output to verbose messages.")]
@@ -29,28 +30,38 @@ namespace DotnetPack
             var commandOutputChannel = Channel.CreateUnbounded<string>();
 
             Options opt = null;
-            Parser.Default.ParseArguments<Options>(args).WithParsed(options => opt = options);
-
+            
+            Parser.Default.ParseArguments<Options>(args)
+                .WithParsed(options => opt = options)
+                .WithNotParsed(errors => Environment.Exit(1));
             try
             {
-                Rid.EnsureValid(opt.Runtime);
-                
-                var projectFolder = Path.GetDirectoryName(opt.ProjectPath?.FullName ?? Directory.GetCurrentDirectory());
-                var publishPath = Path.Combine(projectFolder, PublishTempPath);
-                
+                if (opt.Runtime == null)
+                {
+                    opt.Runtime = Rid.Current();
+                    Console.WriteLine($"No runtime specified, selected current ({opt.Runtime}).");
+                }
+
+                var projectPath = opt.ProjectPath != null
+                    ? Path.GetDirectoryName(opt.ProjectPath.FullName)
+                    : Directory.GetCurrentDirectory();
+
+                _tempPublishPath = Path.Combine(projectPath, PublishTempPath);
+
                 if (opt.IsVerbose)
                 {
                     Task.Run(async () => await LogToConsoleAsync(commandOutputChannel));
+
+                    Console.WriteLine($"Project path: {projectPath}");
+                    Console.WriteLine($"Publish path: {_tempPublishPath}");
                 }
-                
-                PublishProject(projectFolder, commandOutputChannel);
-                PackWithWarp(publishPath, commandOutputChannel, projectFolder);
-                
-                Directory.Delete(publishPath, true);
-                Environment.Exit(Environment.ExitCode);
+
+                PublishProject(projectPath, opt.Runtime, commandOutputChannel);
+                PackWithWarp(_tempPublishPath, commandOutputChannel, projectPath);
             }
             catch (Exception e)
             {
+                Environment.ExitCode = 1;
                 if (opt.IsVerbose)
                 {
                     throw;
@@ -59,8 +70,14 @@ namespace DotnetPack
                 Console.WriteLine(e is DotnetPackException
                     ? $"Error: {e.Message}."
                     : $"Unhandled error: {e.Message}");
+            }
+            finally
+            {
+                if (Directory.Exists(_tempPublishPath))
+                {
+                    Directory.Delete(_tempPublishPath, true);
+                }
 
-                Environment.Exit(1);
             }
         }
 
@@ -81,10 +98,10 @@ namespace DotnetPack
             }
         }
 
-        private static void PublishProject(string projectPathName, Channel<string> commandOutputChannel)
+        private static void PublishProject(string projectPathName, string rid, Channel<string> commandOutputChannel)
         {
             var dotnetCli = new DotnetCli(projectPathName, commandOutputChannel);
-            dotnetCli.Publish(PublishTempPath, "Release");
+            dotnetCli.Publish(PublishTempPath, "Release", rid);
         }
     }
 }

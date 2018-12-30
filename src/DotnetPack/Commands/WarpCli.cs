@@ -1,5 +1,6 @@
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Channels;
 
 namespace DotnetPack.Commands
@@ -8,7 +9,7 @@ namespace DotnetPack.Commands
     {
         private readonly string _publishPath;
 
-        public WarpCli(string publishPath, ChannelWriter<string> commandOutput) : base(Path.Combine(Directory.GetCurrentDirectory(), "warp", "windows-x64.warp-packer.exe"), commandOutput)
+        public WarpCli(string publishPath, ChannelWriter<string> commandOutput) : base(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "warp", "windows-x64.warp-packer.exe"), commandOutput)
         {
             _publishPath = publishPath;
         }
@@ -16,12 +17,13 @@ namespace DotnetPack.Commands
         public void Pack(string output)
         {
             var exeFile = Directory.EnumerateFiles(_publishPath, "*.exe").First();
-            
+            var fileName = Path.GetFileName(exeFile);
+
             var argumentList = new ArgumentList();
             argumentList.AddArgument("--arch windows-x64");
-            argumentList.AddArgument($"--exec {exeFile}");
             argumentList.AddArgument($"--input_dir {_publishPath}");
-            argumentList.AddArgument($"--output {Path.Combine(output, Path.GetFileName(exeFile))}");
+            argumentList.AddArgument($"--exec {fileName}");
+            argumentList.AddArgument($"--output {fileName}");
             
             RunCommand(argumentList);
         }

@@ -33,6 +33,7 @@ namespace DotnetPack.Commands
 
             process.OutputDataReceived += ProcessOnOutputDataReceived;
 
+            channelWriter.TryWrite($"Running {process.StartInfo.FileName} {string.Join(' ', argumentList)}");
             process.Start();
 
             process.BeginOutputReadLine();

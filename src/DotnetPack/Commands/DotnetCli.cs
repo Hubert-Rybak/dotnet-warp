@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Channels;
 
 namespace DotnetPack.Commands
@@ -11,9 +12,8 @@ namespace DotnetPack.Commands
             _projectPath = projectPath;
         }
 
-        public void Publish(string outputPath, string configuration, string rid = null)
+        public void Publish(string outputPath, string configuration, string rid)
         {
-            rid = rid ?? Rid.CurrentRid();
             configuration = configuration ?? "Release";
 
             var argumentList = new ArgumentList();

@@ -10,42 +10,42 @@ namespace DotnetPack
 
         static Rid()
         {
-            All = new List<string> {WindowsRid, LinuxRid, OsxRid};
+            All = new List<string> {WindowsRid64, WindowsRid86, LinuxRid, OsxRid};
         }
 
-        public static string WindowsRid = "win-x64";
-        
+        public static string WindowsRid64 = "win-x64";
+
+        public static string WindowsRid86 = "win-x86";
+
         public static string LinuxRid = "linux-x64";
-        
+
         public static string OsxRid = "osx-x64";
 
-        public static string CurrentRid()
+        public static string Current()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&
+                RuntimeInformation.ProcessArchitecture == Architecture.X64)
             {
-                return WindowsRid;
+                return WindowsRid64;
             }
-            
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&
+                RuntimeInformation.ProcessArchitecture == Architecture.X86)
+            {
+                return WindowsRid86;
+            }
+
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 return LinuxRid;
             }
-            
+
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
                 return OsxRid;
             }
 
             throw new Exception("Unknown platform. Set it explicitly using -r flag.");
-        }
-
-        public static void EnsureValid(string rid)
-        {
-            if (rid != null && !Rid.All.Contains(rid))
-            {
-                throw new Exception(
-                    $"Supplied runtime {rid} is not valid. Available values: {string.Join(",", Rid.All)}");
-            }
         }
     }
 }
