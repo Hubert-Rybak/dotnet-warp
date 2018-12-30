@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using CommandLine;
 using DotnetPack.Commands;
@@ -9,11 +10,13 @@ namespace DotnetPack
 {
     internal class Program
     {
+        private const string PublishTempPath = "dotnetpack_temp";
+
         public class Options
         {
             [Option('p', "project", Required = false, HelpText = "Project path")]
             public DirectoryInfo ProjectPath { get; set; }
-            
+
             [Option('r', "runtime", Required = false, HelpText = "Runtime (win-x64, linux-x64, osx-x64)")]
             public string Runtime { get; set; }
 
@@ -21,29 +24,32 @@ namespace DotnetPack
             public bool IsVerbose { get; set; }
         }
 
-        static async Task Main(string[] args)
+        static void Main(string[] args)
         {
+            var commandOutputChannel = Channel.CreateUnbounded<string>();
+
             Options opt = null;
             Parser.Default.ParseArguments<Options>(args).WithParsed(options => opt = options);
-            
+
             try
             {
                 Rid.EnsureValid(opt.Runtime);
-
-                var projectPathName = opt.ProjectPath.FullName;
-
-                var dotnetCli = new DotnetCli(projectPathName);
                 
-                var publishOutputPath = "dotnetpack_temp";
-                var outputChannel = dotnetCli.Publish(publishOutputPath, "Release");
-                    
-                while (await outputChannel.WaitToReadAsync())
+                var projectFolder = Path.GetDirectoryName(opt.ProjectPath.FullName);
+                var publishPath = Path.Combine(projectFolder, PublishTempPath);
+
+                if (opt.IsVerbose)
                 {
-                    if (outputChannel.TryRead(out string message))
-                    {
-                        Console.WriteLine(message);
-                    }
+                    Task.Run(async () => await LogToConsoleAsync(commandOutputChannel));
                 }
+
+                PublishProject(projectFolder, commandOutputChannel);
+
+                var warp = new WarpCli(publishPath, commandOutputChannel);
+
+                warp.Pack(projectFolder);
+
+                Environment.Exit(Environment.ExitCode);
             }
             catch (Exception e)
             {
@@ -58,10 +64,23 @@ namespace DotnetPack
 
                 Environment.Exit(1);
             }
-            finally
+        }
+
+        private static async Task LogToConsoleAsync(Channel<string> commandOutputChannel)
+        {
+            while (await commandOutputChannel.Reader.WaitToReadAsync())
             {
-                Environment.Exit(Environment.ExitCode);
+                if (commandOutputChannel.Reader.TryRead(out string message))
+                {
+                    Console.WriteLine(message);
+                }
             }
+        }
+
+        private static void PublishProject(string projectPathName, Channel<string> commandOutputChannel)
+        {
+            var dotnetCli = new DotnetCli(projectPathName, commandOutputChannel);
+            dotnetCli.Publish(PublishTempPath, "Release");
         }
     }
 }

@@ -8,6 +8,8 @@
         <ToolCommandName>dotnet-pack</ToolCommandName>
         <PackageOutputPath>./nupkg</PackageOutputPath>
         <LangVersion>7.3</LangVersion>
+        <NoWarn>CS4014</NoWarn>
+        <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
     </PropertyGroup>
 
     <ItemGroup>

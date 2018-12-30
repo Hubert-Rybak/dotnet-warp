@@ -1,8 +1,6 @@
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Threading.Channels;
-using System.Threading.Tasks;
 
 namespace DotnetPack.Commands
 {
@@ -21,10 +19,8 @@ namespace DotnetPack.Commands
             };
         }
 
-        public ChannelReader<string> Run(IEnumerable<string> argumentList)
+        public void Run(IEnumerable<string> argumentList, ChannelWriter<string> channelWriter)
         {
-            var processOutput = Channel.CreateUnbounded<string>();
-
             foreach (var argument in argumentList)
             {
                 _processStartInfo.ArgumentList.Add(argument);
@@ -34,22 +30,21 @@ namespace DotnetPack.Commands
             {
                 StartInfo = _processStartInfo
             };
-            
-            process.OutputDataReceived += (s, e) =>
-            {
-                processOutput.Writer.TryWrite(e.Data);
-            };
-            
+
+            process.OutputDataReceived += ProcessOnOutputDataReceived;
+
             process.Start();
+
             process.BeginOutputReadLine();
 
-            Task.Run(() =>
-            {
-                process.WaitForExit();
-                processOutput.Writer.Complete();
-            });
+            process.WaitForExit();
 
-            return processOutput.Reader;
+            process.OutputDataReceived -= ProcessOnOutputDataReceived;
+
+            void ProcessOnOutputDataReceived(object sender, DataReceivedEventArgs args)
+            {
+                channelWriter.TryWrite(args.Data);
+            }
         }
     }
 }

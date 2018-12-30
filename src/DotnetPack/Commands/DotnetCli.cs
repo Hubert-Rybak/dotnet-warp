@@ -1,23 +1,17 @@
-using System;
-using System.Collections.Generic;
 using System.Threading.Channels;
-using System.Threading.Tasks;
 
 namespace DotnetPack.Commands
 {
-    internal class DotnetCli
+    internal class DotnetCli : CmdCommand
     {
-        private readonly string _projectPathName;
-        private const string DotnetCliName = "dotnet";
-        private readonly CommandWrapper _dotnetCommandWrapper;
+        private readonly string _projectPath;
 
-        public DotnetCli(string projectPathName)
+        public DotnetCli(string projectPath, ChannelWriter<string> commandOutput) : base("dotnet", commandOutput)
         {
-            _projectPathName = projectPathName;
-            _dotnetCommandWrapper = new CommandWrapper(DotnetCliName);
+            _projectPath = projectPath;
         }
 
-        public ChannelReader<string> Publish(string outputPath, string configuration, string rid = null)
+        public void Publish(string outputPath, string configuration, string rid = null)
         {
             rid = rid ?? Rid.CurrentRid();
             configuration = configuration ?? "Release";
@@ -27,14 +21,9 @@ namespace DotnetPack.Commands
             argumentList.AddArgument($"-c {configuration}");
             argumentList.AddArgument($"-r {rid}");
             argumentList.AddArgument($"-o {outputPath}");
-            argumentList.AddArgument($"{_projectPathName}");
+            argumentList.AddArgument($"{_projectPath}");
 
-            return RunCommand(argumentList);
-        }
-
-        private ChannelReader<string> RunCommand(IEnumerable<string> arguments)
-        {
-            return _dotnetCommandWrapper.Run(arguments);
+            RunCommand(argumentList);
         }
     }
 }
