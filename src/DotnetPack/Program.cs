@@ -35,7 +35,7 @@ namespace DotnetPack
             {
                 Rid.EnsureValid(opt.Runtime);
                 
-                var projectFolder = Path.GetDirectoryName(opt.ProjectPath.FullName);
+                var projectFolder = Path.GetDirectoryName(opt.ProjectPath?.FullName ?? Directory.GetCurrentDirectory());
                 var publishPath = Path.Combine(projectFolder, PublishTempPath);
                 
                 if (opt.IsVerbose)
