@@ -37,18 +37,16 @@ namespace DotnetPack
                 
                 var projectFolder = Path.GetDirectoryName(opt.ProjectPath.FullName);
                 var publishPath = Path.Combine(projectFolder, PublishTempPath);
-
+                
                 if (opt.IsVerbose)
                 {
                     Task.Run(async () => await LogToConsoleAsync(commandOutputChannel));
                 }
-
+                
                 PublishProject(projectFolder, commandOutputChannel);
-
-                var warp = new WarpCli(publishPath, commandOutputChannel);
-
-                warp.Pack(projectFolder);
-
+                PackWithWarp(publishPath, commandOutputChannel, projectFolder);
+                
+                Directory.Delete(publishPath, true);
                 Environment.Exit(Environment.ExitCode);
             }
             catch (Exception e)
@@ -64,6 +62,12 @@ namespace DotnetPack
 
                 Environment.Exit(1);
             }
+        }
+
+        private static void PackWithWarp(string publishPath, Channel<string> commandOutputChannel, string projectFolder)
+        {
+            var warp = new WarpCli(publishPath, commandOutputChannel);
+            warp.Pack(projectFolder);
         }
 
         private static async Task LogToConsoleAsync(Channel<string> commandOutputChannel)
