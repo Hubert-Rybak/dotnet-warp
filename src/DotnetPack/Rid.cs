@@ -38,5 +38,14 @@ namespace DotnetPack
 
             throw new Exception("Unknown platform. Set it explicitly using -r flag.");
         }
+
+        public static void EnsureValid(string rid)
+        {
+            if (rid != null && !Rid.All.Contains(rid))
+            {
+                throw new Exception(
+                    $"Supplied runtime {rid} is not valid. Available values: {string.Join(",", Rid.All)}");
+            }
+        }
     }
 }

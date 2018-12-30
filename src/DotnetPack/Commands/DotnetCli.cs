@@ -5,43 +5,35 @@ using System.Threading.Tasks;
 
 namespace DotnetPack.Commands
 {
-    internal enum DotnetCommand
-    {
-        Publish,
-        AddLinker
-    }
-    
     internal class DotnetCli
     {
-        private const string DotnetCliName = "dotnet";
-        
         private readonly string _projectPathName;
-        private readonly string _rid;
-        private readonly bool _isVerbose;
-        private CommandWrapper _dotnetCommandWrapper;
+        private const string DotnetCliName = "dotnet";
+        private readonly CommandWrapper _dotnetCommandWrapper;
 
-        private Dictionary<DotnetCommand, string> CommandToArgumentMap => new Dictionary<DotnetCommand, string>()
-        {
-            [DotnetCommand.Publish] = $"publish -c Release -r {_rid} -o dotpack_temp {_projectPathName}"
-        };
-        
-        public DotnetCli(string projectPathName, string rid, bool isVerbose)
+        public DotnetCli(string projectPathName)
         {
             _projectPathName = projectPathName;
-            _rid = rid ?? Rid.CurrentRid();
-            _isVerbose = isVerbose;
-            _dotnetCommandWrapper = new CommandWrapper("dotnet");
+            _dotnetCommandWrapper = new CommandWrapper(DotnetCliName);
         }
 
-        public ChannelReader<string> Publish()
+        public ChannelReader<string> Publish(string outputPath, string configuration, string rid = null)
         {
-            return RunCommand(DotnetCommand.Publish);
+            rid = rid ?? Rid.CurrentRid();
+            configuration = configuration ?? "Release";
+
+            var argumentList = new ArgumentList();
+            argumentList.AddArgument("publish");
+            argumentList.AddArgument($"-c {configuration}");
+            argumentList.AddArgument($"-r {rid}");
+            argumentList.AddArgument($"-o {outputPath}");
+            argumentList.AddArgument($"{_projectPathName}");
+
+            return RunCommand(argumentList);
         }
 
-        private ChannelReader<string> RunCommand(DotnetCommand dotnetCommand)
+        private ChannelReader<string> RunCommand(IEnumerable<string> arguments)
         {
-            var arguments = CommandToArgumentMap[dotnetCommand];
-
             return _dotnetCommandWrapper.Run(arguments);
         }
     }

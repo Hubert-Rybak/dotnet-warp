@@ -21,7 +21,6 @@ namespace DotnetPack
             public bool IsVerbose { get; set; }
         }
 
-
         static async Task Main(string[] args)
         {
             Options opt = null;
@@ -29,12 +28,14 @@ namespace DotnetPack
             
             try
             {
-                Validator.EnsureValid(opt);
+                Rid.EnsureValid(opt.Runtime);
 
                 var projectPathName = opt.ProjectPath.FullName;
 
-                var dotnetCli = new DotnetCli(projectPathName, opt.Runtime, opt.IsVerbose);
-                var outputChannel = dotnetCli.Publish();
+                var dotnetCli = new DotnetCli(projectPathName);
+                
+                var publishOutputPath = "dotnetpack_temp";
+                var outputChannel = dotnetCli.Publish(publishOutputPath, "Release");
                     
                 while (await outputChannel.WaitToReadAsync())
                 {

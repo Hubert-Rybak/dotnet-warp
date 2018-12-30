@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -19,12 +21,15 @@ namespace DotnetPack.Commands
             };
         }
 
-        public ChannelReader<string> Run(string arguments)
+        public ChannelReader<string> Run(IEnumerable<string> argumentList)
         {
             var processOutput = Channel.CreateUnbounded<string>();
 
-            _processStartInfo.Arguments = arguments;
-            
+            foreach (var argument in argumentList)
+            {
+                _processStartInfo.ArgumentList.Add(argument);
+            }
+
             var process = new Process
             {
                 StartInfo = _processStartInfo
