@@ -18,7 +18,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="System.CommandLine.Experimental" Version="0.1.0-alpha-63621-01" />
+      <PackageReference Include="CommandLineParser" Version="2.3.0" />
     </ItemGroup>
 
 </Project>
