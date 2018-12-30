@@ -21,6 +21,8 @@ namespace DotnetPack.Commands
 
         public void Run(IEnumerable<string> argumentList, ChannelWriter<string> channelWriter)
         {
+            _processStartInfo.ArgumentList.Clear();
+            
             foreach (var argument in argumentList)
             {
                 _processStartInfo.ArgumentList.Add(argument);

@@ -19,6 +19,8 @@ namespace DotnetPack.Commands
             var exeFile = Directory.EnumerateFiles(_publishPath, "*.exe").First();
             var fileName = Path.GetFileName(exeFile);
 
+            File.Delete(fileName);
+            
             var argumentList = new ArgumentList();
             argumentList.AddArgument("--arch windows-x64");
             argumentList.AddArgument($"--input_dir {_publishPath}");

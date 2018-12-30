@@ -25,5 +25,25 @@ namespace DotnetPack.Commands
 
             RunCommand(argumentList);
         }
+
+        public void AddLinkerPackage()
+        {
+            var argumentList = new ArgumentList();
+            argumentList.AddArgument("add");
+            argumentList.AddArgument("package");
+            argumentList.AddArgument("--source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json ILLink.Tasks -v 0.1.5-preview-1841731");
+            
+            RunCommand(argumentList);
+        }
+
+        public void RemoveLinkerPackage()
+        {
+            var argumentList = new ArgumentList();
+            argumentList.AddArgument("remove");
+            argumentList.AddArgument("package");
+            argumentList.AddArgument("ILLink.Tasks");
+            
+            RunCommand(argumentList);
+        }
     }
 }

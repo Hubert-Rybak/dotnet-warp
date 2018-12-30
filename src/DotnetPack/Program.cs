@@ -21,6 +21,9 @@ namespace DotnetPack
             [Option('r', "runtime", Required = false, HelpText = "Runtime")]
             public string Runtime { get; set; }
 
+            [Option('l', "link", Required = false, HelpText = "Enable linker")]
+            public bool IsLinkerEnabled { get; set; }
+            
             [Option('v', "verbose", Required = false, HelpText = "Set output to verbose messages.")]
             public bool IsVerbose { get; set; }
         }
@@ -55,9 +58,22 @@ namespace DotnetPack
                     Console.WriteLine($"Project path: {projectPath}");
                     Console.WriteLine($"Publish path: {_tempPublishPath}");
                 }
+                
+                var dotnetCli = new DotnetCli(projectPath, commandOutputChannel);
 
-                PublishProject(projectPath, opt.Runtime, commandOutputChannel);
+                if (opt.IsLinkerEnabled)
+                {
+                    dotnetCli.AddLinkerPackage();
+                }
+
+                dotnetCli.Publish(PublishTempPath, "Release", opt.Runtime);
+                
                 PackWithWarp(_tempPublishPath, commandOutputChannel, projectPath);
+                
+                if (opt.IsLinkerEnabled)
+                {
+                    dotnetCli.RemoveLinkerPackage();
+                }
             }
             catch (Exception e)
             {
@@ -73,11 +89,9 @@ namespace DotnetPack
             }
             finally
             {
-                if (Directory.Exists(_tempPublishPath))
-                {
-                    Directory.Delete(_tempPublishPath, true);
-                }
-
+                Directory.Delete(_tempPublishPath, true);
+                Directory.Delete("_", true);
+                Directory.Delete("Optimize", true);
             }
         }
 
@@ -96,12 +110,6 @@ namespace DotnetPack
                     Console.WriteLine(message);
                 }
             }
-        }
-
-        private static void PublishProject(string projectPathName, string rid, Channel<string> commandOutputChannel)
-        {
-            var dotnetCli = new DotnetCli(projectPathName, commandOutputChannel);
-            dotnetCli.Publish(PublishTempPath, "Release", rid);
         }
     }
 }
