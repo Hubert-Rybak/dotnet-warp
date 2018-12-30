@@ -19,6 +19,7 @@
 
     <ItemGroup>
       <PackageReference Include="CommandLineParser" Version="2.3.0" />
+      <PackageReference Include="System.Threading.Channels" Version="4.5.0" />
     </ItemGroup>
 
 </Project>

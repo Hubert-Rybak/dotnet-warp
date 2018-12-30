@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
+using System.Threading.Tasks;
 using CommandLine;
+using DotnetPack.Commands;
 using DotnetPack.Exceptions;
 
 namespace DotnetPack
@@ -20,37 +22,45 @@ namespace DotnetPack
         }
 
 
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
-            Parser.Default.ParseArguments<Options>(args).WithParsed(options =>
+            Options opt = null;
+            Parser.Default.ParseArguments<Options>(args).WithParsed(options => opt = options);
+            
+            try
             {
-                try
-                {
-                    Validator.EnsureValid(options);
+                Validator.EnsureValid(opt);
 
-                    var projectPathName = options.ProjectPath.FullName;
+                var projectPathName = opt.ProjectPath.FullName;
 
-                    var dotnetCli = new DotnetCli(projectPathName, options.Runtime, options.IsVerbose);
-                    dotnetCli.Publish();
-                }
-                catch (Exception e)
+                var dotnetCli = new DotnetCli(projectPathName, opt.Runtime, opt.IsVerbose);
+                var outputChannel = dotnetCli.Publish();
+                    
+                while (await outputChannel.WaitToReadAsync())
                 {
-                    if (options.IsVerbose)
+                    if (outputChannel.TryRead(out string message))
                     {
-                        throw;
+                        Console.WriteLine(message);
                     }
-
-                    Console.WriteLine(e is DotnetPackException
-                        ? $"Error: {e.Message}."
-                        : $"Unhandled error: {e.Message}");
-
-                    Environment.Exit(1);
                 }
-                finally
+            }
+            catch (Exception e)
+            {
+                if (opt.IsVerbose)
                 {
-                    Environment.Exit(Environment.ExitCode);
+                    throw;
                 }
-            });
+
+                Console.WriteLine(e is DotnetPackException
+                    ? $"Error: {e.Message}."
+                    : $"Unhandled error: {e.Message}");
+
+                Environment.Exit(1);
+            }
+            finally
+            {
+                Environment.Exit(Environment.ExitCode);
+            }
         }
     }
 }
