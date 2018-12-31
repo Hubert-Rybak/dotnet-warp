@@ -89,8 +89,24 @@ namespace DotnetPack
             }
             finally
             {
+                DeleteTempFolders();
+            }
+        }
+
+        private static void DeleteTempFolders()
+        {
+            if (Directory.Exists(_tempPublishPath))
+            {
                 Directory.Delete(_tempPublishPath, true);
+            }
+
+            if (Directory.Exists("_"))
+            {
                 Directory.Delete("_", true);
+            }
+
+            if (Directory.Exists("Optimize"))
+            {
                 Directory.Delete("Optimize", true);
             }
         }
