@@ -20,6 +20,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="Kurukuru" Version="1.0.0" />
       <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="2.2.5" />
       <PackageReference Include="System.Threading.Channels" Version="4.5.0" />
     </ItemGroup>

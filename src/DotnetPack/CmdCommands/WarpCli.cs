@@ -3,7 +3,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Channels;
 
-namespace DotnetPack.Commands
+namespace DotnetPack.CmdCommands
 {
     internal class WarpCli : CmdCommand
     {
@@ -14,7 +14,7 @@ namespace DotnetPack.Commands
             _publishPath = publishPath;
         }
 
-        public void Pack(string output)
+        public bool Pack(string output)
         {
             var exeFile = Directory.EnumerateFiles(_publishPath, "*.exe").First();
             var fileName = Path.GetFileName(exeFile);
@@ -27,7 +27,7 @@ namespace DotnetPack.Commands
             argumentList.AddArgument($"--exec {fileName}");
             argumentList.AddArgument($"--output {fileName}");
             
-            RunCommand(argumentList);
+            return RunCommand(argumentList);
         }
     }
 }

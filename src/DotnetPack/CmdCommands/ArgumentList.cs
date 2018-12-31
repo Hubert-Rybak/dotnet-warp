@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace DotnetPack.Commands
+namespace DotnetPack.CmdCommands
 {
     public class ArgumentList : IEnumerable<string>
     {

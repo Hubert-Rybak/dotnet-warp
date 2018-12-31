@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Channels;
 
-namespace DotnetPack.Commands
+namespace DotnetPack.CmdCommands
 {
     internal class CmdCommand
     {
@@ -14,9 +14,9 @@ namespace DotnetPack.Commands
             _commandWrapper = new CommandWrapper(command);
         }
         
-        protected void RunCommand(IEnumerable<string> arguments)
+        protected bool RunCommand(IEnumerable<string> arguments)
         {
-            _commandWrapper.Run(arguments, _commandOutput);
+            return _commandWrapper.Run(arguments, _commandOutput);
         }
     }
 }

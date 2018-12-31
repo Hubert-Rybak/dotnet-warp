@@ -1,11 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using DotnetPack.Commands;
+using DotnetPack.CmdCommands;
 using DotnetPack.Exceptions;
+using Kurukuru;
 using McMaster.Extensions.CommandLineUtils;
 
 // ReSharper disable UnassignedGetOnlyAutoProperty
@@ -42,7 +45,6 @@ namespace DotnetPack
 
                 ProjectFolder = Path.GetDirectoryName(ProjectFolder);
                 return ValidationResult.Success;
-
             }
 
             if (Directory.Exists(ProjectFolder))
@@ -52,9 +54,10 @@ namespace DotnetPack
                 {
                     return new ValidationResult("More than one .csproj file found. Specify single with --project flag.");
                 }
+
                 return ValidationResult.Success;
             }
-            
+
             return new ValidationResult("Not valid project path specified.");
         }
 
@@ -64,6 +67,8 @@ namespace DotnetPack
 
             try
             {
+                var actions = new List<Expression<Func<bool>>>();
+
                 if (File.Exists(ProjectFolder))
                 {
                     ProjectFolder = Path.GetDirectoryName(ProjectFolder);
@@ -74,26 +79,25 @@ namespace DotnetPack
                 if (IsVerbose)
                 {
                     Task.Run(async () => await LogToConsoleAsync(commandOutputChannel));
-
-                    Console.WriteLine($"Project path: {ProjectFolder}");
-                    Console.WriteLine($"Publish path: {_tempPublishPath}");
                 }
 
                 var dotnetCli = new DotnetCli(ProjectFolder, commandOutputChannel);
+                var warp = new WarpCli(_tempPublishPath, commandOutputChannel);
 
                 if (IsLinkerEnabled)
                 {
-                    dotnetCli.AddLinkerPackage();
+                    actions.Add(() => dotnetCli.AddLinkerPackage());
                 }
 
-                dotnetCli.Publish(PublishTempPath, "Release", Runtime);
-
-                PackWithWarp(_tempPublishPath, commandOutputChannel, ProjectFolder);
-
+                actions.Add(() => dotnetCli.Publish(PublishTempPath, Runtime));
+                actions.Add(() => warp.Pack(ProjectFolder));
+                
                 if (IsLinkerEnabled)
                 {
-                    dotnetCli.RemoveLinkerPackage();
+                    actions.Add(() => dotnetCli.RemoveLinkerPackage());
                 }
+
+                RunActions(actions);
             }
             catch (Exception e)
             {
@@ -113,6 +117,38 @@ namespace DotnetPack
             }
         }
 
+        private void RunActions(List<Expression<Func<bool>>> actions)
+        {
+            foreach (var action in actions)
+            {
+                Spinner.Start("Packing...", spinner =>
+                {
+                    spinner.Text = $"Running {((MethodCallExpression) action.Body).Method.Name}...";
+                    var hasActionSucceeded = action.Compile().Invoke();
+                    
+                    if (hasActionSucceeded)
+                    {
+                        spinner.Succeed();
+                    }
+                    else
+                    {
+                        spinner.Fail();
+                    }
+                });
+            }
+        }
+
+        private static async Task LogToConsoleAsync(Channel<string> commandOutputChannel)
+        {
+            while (await commandOutputChannel.Reader.WaitToReadAsync())
+            {
+                if (commandOutputChannel.Reader.TryRead(out string message))
+                {
+                    Console.WriteLine(message);
+                }
+            }
+        }
+
         private static void DeleteTempFolders()
         {
             if (Directory.Exists(_tempPublishPath))
@@ -128,23 +164,6 @@ namespace DotnetPack
             if (Directory.Exists("Optimize"))
             {
                 Directory.Delete("Optimize", true);
-            }
-        }
-
-        private static void PackWithWarp(string publishPath, Channel<string> commandOutputChannel, string projectFolder)
-        {
-            var warp = new WarpCli(publishPath, commandOutputChannel);
-            warp.Pack(projectFolder);
-        }
-
-        private static async Task LogToConsoleAsync(Channel<string> commandOutputChannel)
-        {
-            while (await commandOutputChannel.Reader.WaitToReadAsync())
-            {
-                if (commandOutputChannel.Reader.TryRead(out string message))
-                {
-                    Console.WriteLine(message);
-                }
             }
         }
     }

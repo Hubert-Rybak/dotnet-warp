@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Channels;
 
-namespace DotnetPack.Commands
+namespace DotnetPack.CmdCommands
 {
     public class CommandWrapper
     {
@@ -19,7 +19,7 @@ namespace DotnetPack.Commands
             };
         }
 
-        public void Run(IEnumerable<string> argumentList, ChannelWriter<string> channelWriter)
+        public bool Run(IEnumerable<string> argumentList, ChannelWriter<string> channelWriter)
         {
             _processStartInfo.ArgumentList.Clear();
             
@@ -44,6 +44,8 @@ namespace DotnetPack.Commands
 
             process.OutputDataReceived -= ProcessOnOutputDataReceived;
 
+            return process.ExitCode == 0;
+            
             void ProcessOnOutputDataReceived(object sender, DataReceivedEventArgs args)
             {
                 channelWriter.TryWrite(args.Data);
