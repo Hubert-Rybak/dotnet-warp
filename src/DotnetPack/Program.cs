@@ -2,75 +2,65 @@
 using System.IO;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using CommandLine;
 using DotnetPack.Commands;
 using DotnetPack.Exceptions;
+using McMaster.Extensions.CommandLineUtils;
+// ReSharper disable UnassignedGetOnlyAutoProperty
 
 namespace DotnetPack
 {
     internal class Program
     {
+        [Argument(0, Description = "Project")]
+        public string ProjectFolder { get; set; } = Directory.GetCurrentDirectory();
+
+        [Option("-r|--runtime <RID>", Description = "Runtime")]
+        public string Runtime { get; set; } = Rid.Current();
+
+        [Option("-l|--linker>", Description = "Enable linker")]
+        public bool IsLinkerEnabled { get; }
+            
+        [Option("-v|--verbose", Description = "Set output to verbose messages.")]
+        public bool IsVerbose { get; }
+        
+        public static int Main(string[] args) => CommandLineApplication.Execute<Program>(args);
+        
         private static string _tempPublishPath;
         private const string PublishTempPath = "dotnetpack_temp";
 
-        public class Options
-        {
-            [Option('p', "project", Required = false, HelpText = "Project path")]
-            public DirectoryInfo ProjectPath { get; set; }
-
-            [Option('r', "runtime", Required = false, HelpText = "Runtime")]
-            public string Runtime { get; set; }
-
-            [Option('l', "link", Required = false, HelpText = "Enable linker")]
-            public bool IsLinkerEnabled { get; set; }
-            
-            [Option('v', "verbose", Required = false, HelpText = "Set output to verbose messages.")]
-            public bool IsVerbose { get; set; }
-        }
-
-        static void Main(string[] args)
+        private void OnExecute()
         {
             var commandOutputChannel = Channel.CreateUnbounded<string>();
 
-            Options opt = null;
-            
-            Parser.Default.ParseArguments<Options>(args)
-                .WithParsed(options => opt = options)
-                .WithNotParsed(errors => Environment.Exit(1));
             try
             {
-                if (opt.Runtime == null)
+                if (File.Exists(ProjectFolder))
                 {
-                    opt.Runtime = Rid.Current();
-                    Console.WriteLine($"No runtime specified, selected current ({opt.Runtime}).");
+                    ProjectFolder = Path.GetDirectoryName(ProjectFolder);
                 }
 
-                var projectPath = opt.ProjectPath != null
-                    ? Path.GetDirectoryName(opt.ProjectPath.FullName)
-                    : Directory.GetCurrentDirectory();
+                _tempPublishPath = Path.Combine(ProjectFolder, PublishTempPath);
 
-                _tempPublishPath = Path.Combine(projectPath, PublishTempPath);
-
-                if (opt.IsVerbose)
+                if (IsVerbose)
                 {
                     Task.Run(async () => await LogToConsoleAsync(commandOutputChannel));
 
-                    Console.WriteLine($"Project path: {projectPath}");
+                    Console.WriteLine($"Project path: {ProjectFolder}");
                     Console.WriteLine($"Publish path: {_tempPublishPath}");
                 }
                 
-                var dotnetCli = new DotnetCli(projectPath, commandOutputChannel);
+                var dotnetCli = new DotnetCli(ProjectFolder, commandOutputChannel);
 
-                if (opt.IsLinkerEnabled)
+                if (IsLinkerEnabled)
                 {
                     dotnetCli.AddLinkerPackage();
                 }
 
-                dotnetCli.Publish(PublishTempPath, "Release", opt.Runtime);
+                dotnetCli.Publish(PublishTempPath, "Release", Runtime);
                 
-                PackWithWarp(_tempPublishPath, commandOutputChannel, projectPath);
+                PackWithWarp(_tempPublishPath, commandOutputChannel, ProjectFolder);
                 
-                if (opt.IsLinkerEnabled)
+                if (IsLinkerEnabled)
                 {
                     dotnetCli.RemoveLinkerPackage();
                 }
@@ -78,7 +68,7 @@ namespace DotnetPack
             catch (Exception e)
             {
                 Environment.ExitCode = 1;
-                if (opt.IsVerbose)
+                if (IsVerbose)
                 {
                     throw;
                 }
