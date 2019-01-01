@@ -145,8 +145,14 @@ namespace DotnetPack
 
         private void RunActions(List<Expression<Func<bool>>> actions)
         {
+            bool errorOccured = false;
             foreach (var action in actions)
             {
+                if (errorOccured)
+                {
+                    Console.WriteLine("Error occured. Set --verbose flag for more info.");
+                    return;
+                }
                 Spinner.Start("Packing...", spinner =>
                 {
                     spinner.Text = $"Running {((MethodCallExpression) action.Body).Method.Name}...";
@@ -159,6 +165,7 @@ namespace DotnetPack
                     else
                     {
                         spinner.Fail();
+                        errorOccured = true;
                     }
                 }, Patterns.CircleHalves);
             }
@@ -177,20 +184,15 @@ namespace DotnetPack
 
         private static void DeleteTempFolders()
         {
-            if (Directory.Exists(_tempPublishPath))
+            var dirsToDelete = new List<string>() {_tempPublishPath, "_", "Optimize"};
+            
+            dirsToDelete.ForEach(dir =>
             {
-                Directory.Delete(_tempPublishPath, true);
-            }
-
-            if (Directory.Exists("_"))
-            {
-                Directory.Delete("_", true);
-            }
-
-            if (Directory.Exists("Optimize"))
-            {
-                Directory.Delete("Optimize", true);
-            }
+                if (Directory.Exists(dir))
+                {
+                    Directory.Delete(dir, true);
+                }    
+            });
         }
     }
 }
