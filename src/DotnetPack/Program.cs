@@ -20,13 +20,19 @@ namespace DotnetPack
         [Argument(0, Description = "Project")]
         public string ProjectFolder { get; set; } = Directory.GetCurrentDirectory();
 
-        [Option("-r|--runtime <RID>", Description = "Runtime")]
+        [Option("-r|--runtime <RID>", Description = "OPTIONAL. Runtime in RID format. Example = win-x64. If not set, default to current RID.")]
         public string Runtime { get; set; } = Rid.Current();
 
-        [Option("-l|--linker", Description = "Enable linker")]
+        [Option("-l|--link", Description = "OPTIONAL. Enables linker.")]
         public bool IsLinkerEnabled { get; }
+        
+        [Option("--no-root", Description = "LINKER OPTION. Sets RootAllApplicationAssemblies to false, allows for more aggressive linking")]
+        public bool IsNoRootApplicationAssemblies { get; }
+        
+        [Option("--no-crossgen", Description = "LINKER OPTION. Sets CrossGenDuringPublish to false, disables Cross Gen during publish. See issue: https://github.com/mono/linker/issues/314")]
+        public bool IsNoCrossGen { get; }
 
-        [Option("-v|--verbose", Description = "Set output to verbose messages.")]
+        [Option("-v|--verbose", Description = "Enable verbose output.")]
         public bool IsVerbose { get; }
 
         public static int Main(string[] args) => CommandLineApplication.Execute<Program>(args);
@@ -36,6 +42,14 @@ namespace DotnetPack
 
         private ValidationResult OnValidate()
         {
+            if (IsNoRootApplicationAssemblies || IsNoCrossGen )
+            {
+                if (IsLinkerEnabled == false)
+                {
+                    return new ValidationResult("Specified linker option without --linker flag.");
+                }
+            } 
+            
             if (File.Exists(ProjectFolder))
             {
                 if (!string.Equals(Path.GetExtension(ProjectFolder), "csproj", StringComparison.OrdinalIgnoreCase))
@@ -49,11 +63,23 @@ namespace DotnetPack
 
             if (Directory.Exists(ProjectFolder))
             {
-                var csprojs = Directory.EnumerateFiles(ProjectFolder, "*.csproj");
-                if (csprojs.Count() > 1)
+                var csprojsCount = Directory.EnumerateFiles(ProjectFolder, "*.csproj").Count();
+                
+                if (csprojsCount == 0)
+                {
+                    return new ValidationResult($"No .csproj file found.");
+                }
+                
+                if (csprojsCount > 1)
                 {
                     return new ValidationResult("More than one .csproj file found. Specify single with --project flag.");
                 }
+                
+                if (csprojsCount == 1)
+                {
+                    return ValidationResult.Success;
+                }
+                
 
                 return ValidationResult.Success;
             }
@@ -89,7 +115,7 @@ namespace DotnetPack
                     actions.Add(() => dotnetCli.AddLinkerPackage());
                 }
 
-                actions.Add(() => dotnetCli.Publish(PublishTempPath, Runtime));
+                actions.Add(() => dotnetCli.Publish(PublishTempPath, Runtime, IsNoRootApplicationAssemblies, IsNoCrossGen));
                 actions.Add(() => warp.Pack(ProjectFolder));
                 
                 if (IsLinkerEnabled)
@@ -134,7 +160,7 @@ namespace DotnetPack
                     {
                         spinner.Fail();
                     }
-                });
+                }, Patterns.CircleHalves);
             }
         }
 

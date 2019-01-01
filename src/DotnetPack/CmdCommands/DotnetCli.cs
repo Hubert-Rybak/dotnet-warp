@@ -11,13 +11,25 @@ namespace DotnetPack.CmdCommands
             _projectPath = projectPath;
         }
 
-        public bool Publish(string outputPath, string rid)
+        public bool Publish(string outputPath, string rid, bool isNoRootApplicationAssemblies, bool isNoCrossGen)
         {
             var argumentList = new ArgumentList();
             argumentList.AddArgument("publish");
             argumentList.AddArgument($"-c Release");
             argumentList.AddArgument($"-r {rid}");
             argumentList.AddArgument($"-o {outputPath}");
+            argumentList.AddArgument("/p:ShowLinkerSizeComparison=true");
+            
+            if (isNoRootApplicationAssemblies)
+            {
+                argumentList.AddArgument("/p:RootAllApplicationAssemblies=false");    
+            }
+            
+            if (isNoCrossGen)
+            {
+                argumentList.AddArgument("/p:CrossGenDuringPublish=false");    
+            }
+            
             argumentList.AddArgument($"{_projectPath}");
 
             return RunCommand(argumentList);
