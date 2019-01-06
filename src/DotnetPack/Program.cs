@@ -22,9 +22,6 @@ namespace DotnetPack
         [Argument(0, Description = "Project path.")]
         public string ProjectFolder { get; set; } = Directory.GetCurrentDirectory();
 
-        [Option("-p|--platform", Description = "Optional. Sets platform for packed executable. Available values: windows|linux|macos. Defaults to current.")]
-        public Platform.Value Platform { get; set; } = DotnetPack.Platform.Current();
-
         [Option("-l|--link-level", Description = "Optional. Sets link level. Available values: normal|aggressive.")]
         public (bool hasValue, LinkLevel value) Link { get; }
 
@@ -88,6 +85,8 @@ namespace DotnetPack
             {
                 var actions = new List<Expression<Func<bool>>>();
 
+                var currentPlatform = Platform.Current();
+
                 if (File.Exists(ProjectFolder))
                 {
                     ProjectFolder = Path.GetDirectoryName(ProjectFolder);
@@ -96,15 +95,15 @@ namespace DotnetPack
                 _tempPublishPath = Path.Combine(ProjectFolder, PublishTempPath);
 
                 var dotnetCli = new DotnetCli(ProjectFolder, IsVerbose);
-                var warp = new WarpCli(_tempPublishPath, Platform, IsVerbose);
+                var warp = new WarpCli(_tempPublishPath, currentPlatform, IsVerbose);
 
                 if (Link.hasValue)
                 {
                     actions.Add(() => dotnetCli.AddLinkerPackage());
                 }
 
-                actions.Add(() => dotnetCli.Publish(PublishTempPath, Platform, isNoRootApplicationAssemblies, IsNoCrossGen));
-                actions.Add(() => warp.Pack(Platform, GetProjectName(ProjectFolder)));
+                actions.Add(() => dotnetCli.Publish(PublishTempPath, currentPlatform, isNoRootApplicationAssemblies, IsNoCrossGen));
+                actions.Add(() => warp.Pack(currentPlatform, GetProjectName(ProjectFolder)));
 
                 if (Link.hasValue)
                 {
