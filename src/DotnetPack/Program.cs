@@ -15,7 +15,8 @@ namespace DotnetPack
 {
     [Command("dotnet-pack",
         Description = "Packs project to single binary, with optional linking.",
-        OptionsComparison = StringComparison.OrdinalIgnoreCase)]
+        OptionsComparison = StringComparison.OrdinalIgnoreCase,
+        AllowArgumentSeparator = true)]
     internal class Program
     {
         [Argument(0, Description = "Project path.")]
@@ -95,7 +96,7 @@ namespace DotnetPack
                 _tempPublishPath = Path.Combine(ProjectFolder, PublishTempPath);
 
                 var dotnetCli = new DotnetCli(ProjectFolder, IsVerbose);
-                var warp = new WarpCli(_tempPublishPath, IsVerbose);
+                var warp = new WarpCli(_tempPublishPath, Platform, IsVerbose);
 
                 if (Link.hasValue)
                 {
@@ -103,7 +104,7 @@ namespace DotnetPack
                 }
 
                 actions.Add(() => dotnetCli.Publish(PublishTempPath, Platform, isNoRootApplicationAssemblies, IsNoCrossGen));
-                actions.Add(() => warp.Pack(Platform));
+                actions.Add(() => warp.Pack(Platform, GetProjectName(ProjectFolder)));
 
                 if (Link.hasValue)
                 {
@@ -128,6 +129,13 @@ namespace DotnetPack
             {
                 DeleteTempFolders();
             }
+        }
+
+        private string GetProjectName(string projectFolder)
+        {
+            var projectFile = Directory.EnumerateFiles(projectFolder, "*.csproj").Single();
+
+            return Path.GetFileNameWithoutExtension(projectFile);
         }
 
         private void RunActions(List<Expression<Func<bool>>> actions)

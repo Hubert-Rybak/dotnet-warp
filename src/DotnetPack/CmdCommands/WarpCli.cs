@@ -24,31 +24,30 @@ namespace DotnetPack.CmdCommands
         private readonly string _publishPath;
         private readonly bool _isVerbose;
 
-        public WarpCli(string publishPath, bool isVerbose) : base(GetWarpPath())
+        public WarpCli(string publishPath, Platform.Value platform, bool isVerbose) : base(GetWarpPath(platform))
         {
             _publishPath = publishPath;
             _isVerbose = isVerbose;
         }
 
-        public bool Pack(Platform.Value platform)
+        public bool Pack(Platform.Value platform, string projectName)
         {
-            var exeFile = Directory.EnumerateFiles(_publishPath, "*.exe").First();
-            var fileName = Path.GetFileName(exeFile);
+            var binFileName = platform == Platform.Value.Windows ? projectName + ".exe" : projectName;
 
-            File.Delete(fileName);
+            File.Delete(binFileName);
             
             var argumentList = new ArgumentList();
             argumentList.AddArgument($"--arch {_platformToWarpArch[platform]}");
             argumentList.AddArgument($"--input_dir {_publishPath}");
-            argumentList.AddArgument($"--exec {fileName}");
-            argumentList.AddArgument($"--output {fileName}");
+            argumentList.AddArgument($"--exec {binFileName}");
+            argumentList.AddArgument($"--output {binFileName}");
             
             return RunCommand(argumentList, _isVerbose);
         }
         
-        private static string GetWarpPath()
+        private static string GetWarpPath(Platform.Value platform)
         {
-            return Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "warp", "windows-x64.warp-packer.exe");
+            return Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "warp", _platformToWarpBinary[platform]);
         }
     }
 }
