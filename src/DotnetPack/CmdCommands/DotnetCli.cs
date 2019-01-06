@@ -1,22 +1,31 @@
-using System.Threading.Channels;
+using System.Collections.Generic;
 
 namespace DotnetPack.CmdCommands
 {
     internal class DotnetCli : CmdCommand
     {
         private readonly string _projectPath;
+        private readonly bool _isVerbose;
 
-        public DotnetCli(string projectPath, ChannelWriter<string> commandOutput) : base("dotnet", commandOutput)
+        private static Dictionary<Platform.Value, string> _platformToRid = new Dictionary<Platform.Value, string>()
+        {
+            [Platform.Value.Windows] = "win-x64",
+            [Platform.Value.Linux] = "linux-x64",
+            [Platform.Value.MacOs] = "osx-x64"
+        };
+        
+        public DotnetCli(string projectPath, bool isVerbose) : base("dotnet")
         {
             _projectPath = projectPath;
+            _isVerbose = isVerbose;
         }
 
-        public bool Publish(string outputPath, string rid, bool isNoRootApplicationAssemblies, bool isNoCrossGen)
+        public bool Publish(string outputPath, Platform.Value platform, bool isNoRootApplicationAssemblies, bool isNoCrossGen)
         {
             var argumentList = new ArgumentList();
             argumentList.AddArgument("publish");
             argumentList.AddArgument($"-c Release");
-            argumentList.AddArgument($"-r {rid}");
+            argumentList.AddArgument($"-r {_platformToRid[platform]}");
             argumentList.AddArgument($"-o {outputPath}");
             argumentList.AddArgument("/p:ShowLinkerSizeComparison=true");
             
@@ -32,7 +41,7 @@ namespace DotnetPack.CmdCommands
             
             argumentList.AddArgument($"{_projectPath}");
 
-            return RunCommand(argumentList);
+            return RunCommand(argumentList, _isVerbose);
         }
 
         public bool AddLinkerPackage()
@@ -42,7 +51,7 @@ namespace DotnetPack.CmdCommands
             argumentList.AddArgument("package");
             argumentList.AddArgument("--source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json ILLink.Tasks -v 0.1.5-preview-1841731");
             
-            return RunCommand(argumentList);
+            return RunCommand(argumentList, _isVerbose);
         }
 
         public bool RemoveLinkerPackage()
@@ -52,7 +61,7 @@ namespace DotnetPack.CmdCommands
             argumentList.AddArgument("package");
             argumentList.AddArgument("ILLink.Tasks");
             
-            return RunCommand(argumentList);
+            return RunCommand(argumentList, _isVerbose);
         }
     }
 }

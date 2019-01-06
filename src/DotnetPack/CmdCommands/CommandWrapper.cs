@@ -1,6 +1,6 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Threading.Channels;
 
 namespace DotnetPack.CmdCommands
 {
@@ -19,7 +19,7 @@ namespace DotnetPack.CmdCommands
             };
         }
 
-        public bool Run(IEnumerable<string> argumentList, ChannelWriter<string> channelWriter)
+        public bool Run(IEnumerable<string> argumentList, bool isVerbose)
         {
             _processStartInfo.ArgumentList.Clear();
             
@@ -33,22 +33,28 @@ namespace DotnetPack.CmdCommands
                 StartInfo = _processStartInfo
             };
 
-            process.OutputDataReceived += ProcessOnOutputDataReceived;
-
-            channelWriter.TryWrite($"Running {process.StartInfo.FileName} {string.Join(' ', argumentList)}");
+            if (isVerbose)
+            {
+                process.OutputDataReceived += ProcessOnOutputDataReceived;
+                Console.WriteLine($"Running {process.StartInfo.FileName} {string.Join(' ', argumentList)}");
+            }
+            
             process.Start();
 
             process.BeginOutputReadLine();
 
             process.WaitForExit();
 
-            process.OutputDataReceived -= ProcessOnOutputDataReceived;
+            if (isVerbose)
+            {
+                process.OutputDataReceived -= ProcessOnOutputDataReceived;
+            }
 
             return process.ExitCode == 0;
             
             void ProcessOnOutputDataReceived(object sender, DataReceivedEventArgs args)
             {
-                channelWriter.TryWrite(args.Data);
+                Console.WriteLine(args.Data);
             }
         }
     }
