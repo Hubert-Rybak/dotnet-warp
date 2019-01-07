@@ -5,7 +5,7 @@
         <TargetFramework>netcoreapp2.2</TargetFramework>
         <AssemblyName>dotnet-pack</AssemblyName>
 
-        <Version>1.0.1</Version>
+        <Version>1.0.2</Version>
 
         <Authors>Hubert Rybak</Authors>
         <Description>Pack .NET Core project to single executable</Description>
@@ -23,24 +23,24 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <None Remove="warp\LICENSE"/>
+        <None Remove="warp\LICENSE" />
         <Content Include="warp\LICENSE">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
-        <None Remove="warp\windows-x64.warp-packer.exe"/>
+        <None Remove="warp\windows-x64.warp-packer.exe" />
         <Content Include="warp\windows-x64.warp-packer.exe">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
-        <None Remove="warp\linux-x64.warp-packer"/>
+        <None Remove="warp\linux-x64.warp-packer" />
         <Content Include="warp\linux-x64.warp-packer">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
-        <None Remove="warp\macos-x64.warp-packer"/>
+        <None Remove="warp\macos-x64.warp-packer" />
         <Content Include="warp\macos-x64.warp-packer">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
-        <PackageReference Include="Kurukuru" Version="1.0.0"/>
-        <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="2.3.0"/>
+        <PackageReference Include="Kurukuru" Version="1.0.0" />
+        <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="2.3.0" />
     </ItemGroup>
 
 </Project>

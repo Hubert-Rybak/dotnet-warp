@@ -5,6 +5,7 @@ namespace DotnetPack
     /// </summary>
     internal enum LinkLevel
     {
+        None = 0,
         // Run with default options
         Normal = 1,
         // Also links application assemblies (RootAllApplicationAssemblies=false)

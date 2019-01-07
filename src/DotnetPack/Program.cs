@@ -13,27 +13,26 @@ using McMaster.Extensions.CommandLineUtils;
 
 namespace DotnetPack
 {
-    [Command("dotnet-pack",
+    [Command(
         Description = "Packs project to single binary, with optional linking.",
-        OptionsComparison = StringComparison.OrdinalIgnoreCase,
-        AllowArgumentSeparator = true)]
+        OptionsComparison = StringComparison.OrdinalIgnoreCase)]
     internal class Program
     {
+        public static int Main(string[] args) => CommandLineApplication.Execute<Program>(args);
+        
         [Argument(0, Description = "Project path.")]
         public string ProjectFolder { get; set; } = Directory.GetCurrentDirectory();
 
         [Option("-l|--link-level <LEVEL>", Description = "Optional. Sets link level. Available values: Normal, Aggressive.")]
-        public (bool hasValue, LinkLevel value) Link { get; }
+        public LinkLevel Link { get; }
 
         [Option("-nc|--no-crossgen", Description = "Optional. Disables Cross Gen during publish when linker is enabled. " +
-                                               "Sometimes required for linker to work. " +
-                                               "See issue: https://github.com/mono/linker/issues/314")]
+                                                   "Sometimes required for linker to work. " +
+                                                   "See issue: https://github.com/mono/linker/issues/314")]
         public bool IsNoCrossGen { get; }
 
         [Option("-v|--verbose", Description = "Optional. Enables verbose output.")]
         public bool IsVerbose { get; }
-
-        public static int Main(string[] args) => CommandLineApplication.Execute<Program>(args);
 
         private static string _tempPublishPath;
         private const string PublishTempPath = "dotnetpack_temp";
@@ -79,7 +78,7 @@ namespace DotnetPack
 
         private void OnExecute()
         {
-            var isNoRootApplicationAssemblies = Link.value == LinkLevel.Aggressive;
+            var isNoRootApplicationAssemblies = Link == LinkLevel.Aggressive;
 
             try
             {
@@ -97,7 +96,7 @@ namespace DotnetPack
                 var dotnetCli = new DotnetCli(ProjectFolder, IsVerbose);
                 var warp = new WarpCli(_tempPublishPath, currentPlatform, IsVerbose);
 
-                if (Link.hasValue)
+                if (Link != LinkLevel.None)
                 {
                     actions.Add(() => dotnetCli.AddLinkerPackage());
                 }
@@ -105,7 +104,7 @@ namespace DotnetPack
                 actions.Add(() => dotnetCli.Publish(PublishTempPath, currentPlatform, isNoRootApplicationAssemblies, IsNoCrossGen));
                 actions.Add(() => warp.Pack(currentPlatform, GetProjectName(ProjectFolder)));
 
-                if (Link.hasValue)
+                if (Link != LinkLevel.None)
                 {
                     actions.Add(() => dotnetCli.RemoveLinkerPackage());
                 }
