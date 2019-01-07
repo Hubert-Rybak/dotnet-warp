@@ -22,10 +22,10 @@ namespace DotnetPack
         [Argument(0, Description = "Project path.")]
         public string ProjectFolder { get; set; } = Directory.GetCurrentDirectory();
 
-        [Option("-l|--link-level", Description = "Optional. Sets link level. Available values: normal|aggressive.")]
+        [Option("-l|--link-level <LEVEL>", Description = "Optional. Sets link level. Available values: Normal, Aggressive.")]
         public (bool hasValue, LinkLevel value) Link { get; }
 
-        [Option("--no-crossgen", Description = "Optional. Disables Cross Gen during publish when linker is enabled. " +
+        [Option("-nc|--no-crossgen", Description = "Optional. Disables Cross Gen during publish when linker is enabled. " +
                                                "Sometimes required for linker to work. " +
                                                "See issue: https://github.com/mono/linker/issues/314")]
         public bool IsNoCrossGen { get; }
