@@ -4,6 +4,8 @@
         <OutputType>Exe</OutputType>
         <TargetFramework>netcoreapp2.2</TargetFramework>
 
+        <Version>1.0.0</Version>
+
         <PackAsTool>true</PackAsTool>
         <ToolCommandName>dotnet-pack</ToolCommandName>
         <PackageOutputPath>./nupkg</PackageOutputPath>
@@ -15,7 +17,7 @@
         <Authors>Hubert Rybak</Authors>
         <Description>Pack .NET Core project to single executable</Description>
         <Copyright>2018 Hubert Rybak</Copyright>
-        <PackageLicenseUrl>https://github.com/Hubert-Rybak/DotnetPack/blob/master/LICENSE</PackageLicenseUrl>
+        <License>https://github.com/Hubert-Rybak/DotnetPack/blob/master/LICENSE</License>
         <PackageProjectUrl>https://github.com/Hubert-Rybak/DotnetPack</PackageProjectUrl>
     </PropertyGroup>
 
