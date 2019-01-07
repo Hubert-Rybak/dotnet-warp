@@ -10,30 +10,34 @@
         <LangVersion>7.3</LangVersion>
         <NoWarn>CS4014</NoWarn>
         <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+
+        <Title>dotnet-pack</Title>
+        <Authors>Hubert Rybak</Authors>
+        <Description>Pack .NET Core project to single executable</Description>
+        <Copyright>2018 Hubert Rybak</Copyright>
+        <PackageLicenseUrl>https://github.com/Hubert-Rybak/DotnetPack/blob/master/LICENSE</PackageLicenseUrl>
+        <PackageProjectUrl>https://github.com/Hubert-Rybak/DotnetPack</PackageProjectUrl>
     </PropertyGroup>
 
     <ItemGroup>
-      <None Remove="warp\windows-x64.warp-packer.exe" />
-      <Content Include="warp\windows-x64.warp-packer.exe">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </Content>
-    </ItemGroup>
-    <ItemGroup>
-        <None Remove="warp\linux-x64.warp-packer" />
+        <None Remove="warp\LICENSE"/>
+        <Content Include="warp\LICENSE">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+        <None Remove="warp\windows-x64.warp-packer.exe"/>
+        <Content Include="warp\windows-x64.warp-packer.exe">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+        <None Remove="warp\linux-x64.warp-packer"/>
         <Content Include="warp\linux-x64.warp-packer">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
-    </ItemGroup>
-    <ItemGroup>
-        <None Remove="warp\macos-x64.warp-packer" />
+        <None Remove="warp\macos-x64.warp-packer"/>
         <Content Include="warp\macos-x64.warp-packer">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
-    </ItemGroup>
-
-    <ItemGroup>
-      <PackageReference Include="Kurukuru" Version="1.0.0" />
-      <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="2.3.0" />
+        <PackageReference Include="Kurukuru" Version="1.0.0"/>
+        <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="2.3.0"/>
     </ItemGroup>
 
 </Project>
