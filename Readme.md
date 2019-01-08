@@ -1,4 +1,4 @@
-DotnetPack
+dotnet-pack
 ================
 
 
