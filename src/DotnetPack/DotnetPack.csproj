@@ -9,7 +9,7 @@
 
         <Authors>Hubert Rybak</Authors>
         <Description>Pack .NET Core project to single executable</Description>
-        <Copyright>2018 Hubert Rybak</Copyright>
+        <Copyright>2019 Hubert Rybak</Copyright>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageProjectUrl>https://github.com/Hubert-Rybak/DotnetPack</PackageProjectUrl>
         <RepositoryUrl>https://github.com/Hubert-Rybak/DotnetPack.git</RepositoryUrl>
