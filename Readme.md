@@ -9,7 +9,7 @@ DotnetPack
 
 Global .NET Core tool, which allows to pack .NET Core projects to single executable. 
 
-Internally, it uses Warp (https://github.com/dgiagio/warp) and ILLink.Tasks.
+In fact it's just a wrapper around Warp (https://github.com/dgiagio/warp) and ILLink.Tasks.
 
 Supported environments are same as Warp: win-x64, linux-x64, osx-x64
 
