@@ -17,7 +17,7 @@ Supported environments are same as Warp: win-x64, linux-x64, osx-x64
 
 
 ```bash
-$ dotnet tool install --global dotnet-depends
+$ dotnet tool install --global dotnet-pack
 ```
 
 ## Usage
