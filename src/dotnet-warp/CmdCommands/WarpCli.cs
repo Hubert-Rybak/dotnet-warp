@@ -12,7 +12,7 @@ namespace DotnetWarp.CmdCommands
         {
             [Platform.Value.Windows] = "windows-x64",
             [Platform.Value.Linux] = "linux-x64",
-            [Platform.Value.MacOs] = "osx-x64"
+            [Platform.Value.MacOs] = "macos-x64"
         };
         
         private static readonly Dictionary<Platform.Value, string> PlatformToWarpBinary = new Dictionary<Platform.Value, string>
