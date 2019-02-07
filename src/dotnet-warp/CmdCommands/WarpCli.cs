@@ -2,19 +2,20 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using DotnetWarp.CmdCommands.Options;
 
 namespace DotnetWarp.CmdCommands
 {
     internal class WarpCli : CmdCommand
     {
-        private static Dictionary<Platform.Value, string> _platformToWarpArch = new Dictionary<Platform.Value, string>()
+        private static readonly Dictionary<Platform.Value, string> PlatformToWarpArch = new Dictionary<Platform.Value, string>
         {
             [Platform.Value.Windows] = "windows-x64",
             [Platform.Value.Linux] = "linux-x64",
             [Platform.Value.MacOs] = "osx-x64"
         };
         
-        private static Dictionary<Platform.Value, string> _platformToWarpBinary = new Dictionary<Platform.Value, string>()
+        private static readonly Dictionary<Platform.Value, string> PlatformToWarpBinary = new Dictionary<Platform.Value, string>
         {
             [Platform.Value.Windows] = "windows-x64.warp-packer.exe",
             [Platform.Value.Linux] = "linux-x64.warp-packer",
@@ -30,14 +31,14 @@ namespace DotnetWarp.CmdCommands
             _isVerbose = isVerbose;
         }
 
-        public bool Pack(Platform.Value platform, string projectName)
+        public bool Pack(WarpPackOptions warpPackOptions)
         {
-            var binFileName = platform == Platform.Value.Windows ? projectName + ".exe" : projectName;
+            var binFileName = warpPackOptions.Platform == Platform.Value.Windows ? warpPackOptions.ProjectName + ".exe" : warpPackOptions.ProjectName;
 
             File.Delete(binFileName);
             
             var argumentList = new ArgumentList();
-            argumentList.AddArgument($"--arch {_platformToWarpArch[platform]}");
+            argumentList.AddArgument($"--arch {PlatformToWarpArch[warpPackOptions.Platform]}");
             argumentList.AddArgument($"--input_dir {_publishPath}");
             argumentList.AddArgument($"--exec {binFileName}");
             argumentList.AddArgument($"--output {binFileName}");
@@ -47,7 +48,7 @@ namespace DotnetWarp.CmdCommands
         
         private static string GetWarpPath(Platform.Value platform)
         {
-            return Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "warp", _platformToWarpBinary[platform]);
+            return Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "warp", PlatformToWarpBinary[platform]);
         }
     }
 }

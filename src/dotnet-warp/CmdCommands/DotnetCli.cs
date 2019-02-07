@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using DotnetWarp.CmdCommands.Options;
 
 namespace DotnetWarp.CmdCommands
 {
@@ -7,7 +8,7 @@ namespace DotnetWarp.CmdCommands
         private readonly string _projectPath;
         private readonly bool _isVerbose;
 
-        private static Dictionary<Platform.Value, string> _platformToRid = new Dictionary<Platform.Value, string>()
+        private static readonly Dictionary<Platform.Value, string> PlatformToRid = new Dictionary<Platform.Value, string>
         {
             [Platform.Value.Windows] = "win-x64",
             [Platform.Value.Linux] = "linux-x64",
@@ -20,21 +21,21 @@ namespace DotnetWarp.CmdCommands
             _isVerbose = isVerbose;
         }
 
-        public bool Publish(string outputPath, Platform.Value platform, bool isNoRootApplicationAssemblies, bool isNoCrossGen)
+        public bool Publish(DotnetPublishOptions dotnetPublishOptions)
         {
             var argumentList = new ArgumentList();
             argumentList.AddArgument("publish");
             argumentList.AddArgument($"-c Release");
-            argumentList.AddArgument($"-r {_platformToRid[platform]}");
-            argumentList.AddArgument($"-o {outputPath}");
+            argumentList.AddArgument($"-r {dotnetPublishOptions.Rid ?? PlatformToRid[dotnetPublishOptions.Platform]}");
+            argumentList.AddArgument($"-o {dotnetPublishOptions.OutputPath}");
             argumentList.AddArgument("/p:ShowLinkerSizeComparison=true");
             
-            if (isNoRootApplicationAssemblies)
+            if (dotnetPublishOptions.IsNoRootApplicationAssemblies)
             {
                 argumentList.AddArgument("/p:RootAllApplicationAssemblies=false");    
             }
             
-            if (isNoCrossGen)
+            if (dotnetPublishOptions.IsNoCrossGen)
             {
                 argumentList.AddArgument("/p:CrossGenDuringPublish=false");    
             }

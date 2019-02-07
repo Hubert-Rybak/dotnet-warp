@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using DotnetWarp.CmdCommands;
+using DotnetWarp.CmdCommands.Options;
 using DotnetWarp.Exceptions;
 using Kurukuru;
 using McMaster.Extensions.CommandLineUtils;
@@ -13,9 +14,7 @@ using McMaster.Extensions.CommandLineUtils;
 
 namespace DotnetWarp
 {
-    [Command(
-        Description = "Packs project to single binary, with optional linking.",
-        OptionsComparison = StringComparison.OrdinalIgnoreCase)]
+    [Command(Description = "Packs project to single binary, with optional linking.", OptionsComparison = StringComparison.OrdinalIgnoreCase)]
     internal class Program
     {
         public static int Main(string[] args) => CommandLineApplication.Execute<Program>(args);
@@ -23,10 +22,14 @@ namespace DotnetWarp
         [Argument(0, Description = "Project path.")]
         public string ProjectFolder { get; set; } = Directory.GetCurrentDirectory();
 
-        [Option("-l|--link-level <LEVEL>", Description = "Optional. Sets link level. Available values: Normal, Aggressive.")]
+        [Option("-r|--rid <RID>", Description = "Optional. Sets RID passed to dotnet publish. Defaults to current portable RID (win-x64, linux-x64, osx-x64).")]
+        public string Rid { get; }
+        
+        [Option("-l|--link-level <LEVEL>", Description = "Optional. Enables linking with desired level. Available values: Normal, Aggressive. " +
+                                                         "Aggressive means, that application assemblies will not be rooted, and can also be trimmed.")]
         public LinkLevel Link { get; }
 
-        [Option("-nc|--no-crossgen", Description = "Optional. Disables Cross Gen during publish when linker is enabled. " +
+        [Option("-nc|--no-crossgen", Description = "Optional linkrt option. Disables Cross Gen during publish. " +
                                                    "Sometimes required for linker to work. " +
                                                    "See issue: https://github.com/mono/linker/issues/314")]
         public bool IsNoCrossGen { get; }
@@ -84,7 +87,9 @@ namespace DotnetWarp
             {
                 var actions = new List<Expression<Func<bool>>>();
 
-                var currentPlatform = Platform.Current();
+                var currentPlatform = Rid == null                 ? Platform.Current() :
+                                      Rid.StartsWith("win") ? Platform.Value.Windows :
+                                      Rid.StartsWith("osx") ? Platform.Value.MacOs : Platform.Value.Linux;
 
                 if (File.Exists(ProjectFolder))
                 {
@@ -101,8 +106,8 @@ namespace DotnetWarp
                     actions.Add(() => dotnetCli.AddLinkerPackage());
                 }
 
-                actions.Add(() => dotnetCli.Publish(PublishTempPath, currentPlatform, isNoRootApplicationAssemblies, IsNoCrossGen));
-                actions.Add(() => warp.Pack(currentPlatform, GetProjectName(ProjectFolder)));
+                actions.Add(() => dotnetCli.Publish(new DotnetPublishOptions(PublishTempPath, Rid, currentPlatform, isNoRootApplicationAssemblies, IsNoCrossGen)));
+                actions.Add(() => warp.Pack(new WarpPackOptions(currentPlatform, ProjectFolder)));
 
                 if (Link != LinkLevel.None)
                 {
@@ -129,12 +134,6 @@ namespace DotnetWarp
             }
         }
 
-        private string GetProjectName(string projectFolder)
-        {
-            var projectFile = Directory.EnumerateFiles(projectFolder, "*.csproj").Single();
-
-            return Path.GetFileNameWithoutExtension(projectFile);
-        }
 
         private void RunActions(List<Expression<Func<bool>>> actions)
         {
@@ -168,7 +167,7 @@ namespace DotnetWarp
 
         private static void DeleteTempFolders()
         {
-            var dirsToDelete = new List<string>() {_tempPublishPath, "_", "Optimize"};
+            var dirsToDelete = new List<string> {_tempPublishPath, "_", "Optimize"};
 
             dirsToDelete.ForEach(dir =>
             {
