@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace DotnetPack.CmdCommands
+namespace DotnetWarp.CmdCommands
 {
     public class ArgumentList : IEnumerable<string>
     {

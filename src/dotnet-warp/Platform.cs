@@ -1,8 +1,8 @@
 using System;
 using System.Runtime.InteropServices;
-using DotnetPack.Exceptions;
+using DotnetWarp.Exceptions;
 
-namespace DotnetPack
+namespace DotnetWarp
 {
     internal static class Platform
     {
@@ -10,7 +10,7 @@ namespace DotnetPack
         {
             if (RuntimeInformation.ProcessArchitecture != Architecture.X64)
             {
-                throw new DotnetPackException("DotnetPack only supports x64 architectures.");
+                throw new DotnetWarpException("dotnet-warp only supports x64 architectures.");
             }
             
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))

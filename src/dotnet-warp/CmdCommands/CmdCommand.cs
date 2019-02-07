@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace DotnetPack.CmdCommands
+namespace DotnetWarp.CmdCommands
 {
     internal class CmdCommand
     {

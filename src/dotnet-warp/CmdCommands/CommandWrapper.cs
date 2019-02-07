@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace DotnetPack.CmdCommands
+namespace DotnetWarp.CmdCommands
 {
     public class CommandWrapper
     {

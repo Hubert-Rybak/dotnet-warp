@@ -4,14 +4,14 @@ using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
-using DotnetPack.CmdCommands;
-using DotnetPack.Exceptions;
+using DotnetWarp.CmdCommands;
+using DotnetWarp.Exceptions;
 using Kurukuru;
 using McMaster.Extensions.CommandLineUtils;
 
 // ReSharper disable UnassignedGetOnlyAutoProperty
 
-namespace DotnetPack
+namespace DotnetWarp
 {
     [Command(
         Description = "Packs project to single binary, with optional linking.",
@@ -35,7 +35,7 @@ namespace DotnetPack
         public bool IsVerbose { get; }
 
         private static string _tempPublishPath;
-        private const string PublishTempPath = "dotnetpack_temp";
+        private const string PublishTempPath = "dotnetwarp_temp";
 
         private ValidationResult OnValidate()
         {
@@ -119,7 +119,7 @@ namespace DotnetPack
                     throw;
                 }
 
-                Console.WriteLine(e is DotnetPackException
+                Console.WriteLine(e is DotnetWarpException
                                       ? $"Error: {e.Message}."
                                       : $"Unhandled error: {e.Message}");
             }

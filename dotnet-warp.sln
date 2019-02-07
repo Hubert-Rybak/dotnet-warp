@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotnetPack", "src\DotnetPack\DotnetPack.csproj", "{5D9106C2-41B0-4FBD-87FB-E404F384A148}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dotnet-warp", "src\dotnet-warp\dotnet-warp.csproj", "{5D9106C2-41B0-4FBD-87FB-E404F384A148}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

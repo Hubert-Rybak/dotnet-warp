@@ -1,4 +1,4 @@
-namespace DotnetPack
+namespace DotnetWarp
 {
     /// <summary>
     /// Sets linking level for linking with ILLink.Tasks

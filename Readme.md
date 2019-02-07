@@ -1,11 +1,11 @@
-dotnet-pack
+dotnet-warp
 ================
 
 
 [![NuGet][main-nuget-badge]][main-nuget]
 
-[main-nuget]: https://www.nuget.org/packages/dotnet-pack/
-[main-nuget-badge]: https://img.shields.io/nuget/v/dotnet-pack.svg?style=flat-square&label=nuget
+[main-nuget]: https://www.nuget.org/packages/dotnet-warp/
+[main-nuget-badge]: https://img.shields.io/nuget/v/dotnet-warp.svg?style=flat-square&label=nuget
 
 Global .NET Core tool, which allows to pack .NET Core projects to single executable. 
 
@@ -17,13 +17,13 @@ Supported environments are same as Warp: win-x64, linux-x64, osx-x64
 
 
 ```bash
-$ dotnet tool install --global dotnet-pack
+$ dotnet tool install --global dotnet-warp
 ```
 
 ## Usage
 
 ```bash
-Usage: dotnet-pack [arguments] [options]
+Usage: dotnet-warp [arguments] [options]
 
 Arguments:
   ProjectFolder            Project path.
@@ -38,12 +38,12 @@ Options:
 
 #### Packs project in current directory to single executable using Warp.
 ```bash
-$ dotnet-pack 
+$ dotnet-warp 
 ```
 
 #### Links project before packing using ILLink.Tasks
 ```bash
-$ dotnet-pack -l aggressive
+$ dotnet-warp -l aggressive
 ```
 
 Aggressive option sets /p:RootAllApplicationAssemblies=false during publish. [More info](https://github.com/mono/linker/blob/fbe310a0c018ddcd701fe9ff91aa61ec6c026221/corebuild/README.md#options) 

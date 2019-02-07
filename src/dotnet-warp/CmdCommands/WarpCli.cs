@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 
-namespace DotnetPack.CmdCommands
+namespace DotnetWarp.CmdCommands
 {
     internal class WarpCli : CmdCommand
     {

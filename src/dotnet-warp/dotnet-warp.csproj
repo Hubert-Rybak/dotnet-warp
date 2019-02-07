@@ -3,23 +3,24 @@
     <PropertyGroup>
         <OutputType>Exe</OutputType>
         <TargetFramework>netcoreapp2.2</TargetFramework>
-        <AssemblyName>dotnet-pack</AssemblyName>
+        <AssemblyName>dotnet-warp</AssemblyName>
 
         <Version>1.0.2</Version>
 
         <Authors>Hubert Rybak</Authors>
-        <Description>Pack .NET Core project to single executable</Description>
+        <Description>Pack .NET Core project to single executable using Warp</Description>
         <Copyright>2019 Hubert Rybak</Copyright>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
-        <PackageProjectUrl>https://github.com/Hubert-Rybak/DotnetPack</PackageProjectUrl>
-        <RepositoryUrl>https://github.com/Hubert-Rybak/DotnetPack.git</RepositoryUrl>
+        <PackageProjectUrl>https://github.com/Hubert-Rybak/dotnet-warp</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/Hubert-Rybak/dotnet-warp.git</RepositoryUrl>
         
         <PackAsTool>true</PackAsTool>
-        <ToolCommandName>dotnet-pack</ToolCommandName>
+        <ToolCommandName>dotnet-warp</ToolCommandName>
         <PackageOutputPath>./nupkg</PackageOutputPath>
         <LangVersion>7.3</LangVersion>
         <NoWarn>CS4014</NoWarn>
         <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+        <RootNamespace>DotnetWarp</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
@@ -40,7 +41,7 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
         <PackageReference Include="Kurukuru" Version="1.0.0" />
-        <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="2.3.0" />
+        <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="2.3.2" />
     </ItemGroup>
 
 </Project>
