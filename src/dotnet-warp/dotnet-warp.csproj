@@ -5,7 +5,7 @@
         <TargetFramework>netcoreapp2.2</TargetFramework>
         <AssemblyName>dotnet-warp</AssemblyName>
 
-        <Version>1.0.3</Version>
+        <Version>1.0.4</Version>
 
         <Authors>Hubert Rybak</Authors>
         <Description>Pack .NET Core project to single executable using Warp</Description>
