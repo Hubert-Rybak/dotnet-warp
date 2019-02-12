@@ -3,6 +3,7 @@ dotnet-warp
 
 
 [![NuGet][main-nuget-badge]][main-nuget]
+[![Build status](https://hrybak.visualstudio.com/dotnet-warp/_apis/build/status/dotnet-warp-CI)](https://hrybak.visualstudio.com/dotnet-warp/_build/latest?definitionId=12)
 
 [main-nuget]: https://www.nuget.org/packages/dotnet-warp/
 [main-nuget-badge]: https://img.shields.io/nuget/v/dotnet-warp.svg?style=flat-square&label=nuget
