@@ -20,7 +20,7 @@ namespace DotnetWarp
         public static int Main(string[] args) => CommandLineApplication.Execute<Program>(args);
         
         [Argument(0, Description = "Project path.")]
-        public string ProjectFolder { get; set; } = Directory.GetCurrentDirectory();
+        public string ProjectFileOrFolder { get; set; } = Directory.GetCurrentDirectory();
 
         [Option("-r|--rid <RID>", Description = "Optional. Sets RID passed to dotnet publish. Defaults to current portable RID (win-x64, linux-x64, osx-x64).")]
         public string Rid { get; }
@@ -42,23 +42,23 @@ namespace DotnetWarp
 
         private ValidationResult OnValidate()
         {
-            if (File.Exists(ProjectFolder))
+            if (File.Exists(ProjectFileOrFolder))
             {
-                if (!string.Equals(Path.GetExtension(ProjectFolder), "csproj", StringComparison.OrdinalIgnoreCase) &&
-                    !string.Equals(Path.GetExtension(ProjectFolder), "fsproj", StringComparison.OrdinalIgnoreCase))
+                if (!string.Equals(Path.GetExtension(ProjectFileOrFolder), ".csproj", StringComparison.OrdinalIgnoreCase) &&
+                    !string.Equals(Path.GetExtension(ProjectFileOrFolder), ".fsproj", StringComparison.OrdinalIgnoreCase))
                 {
                     return new ValidationResult("Specified file is not .csproj or .fsproj file.");
                 }
 
-                ProjectFolder = Path.GetDirectoryName(ProjectFolder);
+                ProjectFileOrFolder = Path.GetDirectoryName(ProjectFileOrFolder);
                 return ValidationResult.Success;
             }
 
-            if (Directory.Exists(ProjectFolder))
+            if (Directory.Exists(ProjectFileOrFolder))
             {
                 var projsCount = 
-                    Directory.EnumerateFiles(ProjectFolder, "*.csproj").Count() +
-                    Directory.EnumerateFiles(ProjectFolder, "*.fsproj").Count();
+                    Directory.EnumerateFiles(ProjectFileOrFolder, "*.csproj").Count() +
+                    Directory.EnumerateFiles(ProjectFileOrFolder, "*.fsproj").Count();
 
                 if (projsCount == 0)
                 {
@@ -93,14 +93,14 @@ namespace DotnetWarp
                                       Rid.StartsWith("win") ? Platform.Value.Windows :
                                       Rid.StartsWith("osx") ? Platform.Value.MacOs : Platform.Value.Linux;
 
-                if (File.Exists(ProjectFolder))
+                if (File.Exists(ProjectFileOrFolder))
                 {
-                    ProjectFolder = Path.GetDirectoryName(ProjectFolder);
+                    ProjectFileOrFolder = Path.GetDirectoryName(ProjectFileOrFolder);
                 }
 
-                _tempPublishPath = Path.Combine(ProjectFolder, PublishTempPath);
+                _tempPublishPath = Path.Combine(ProjectFileOrFolder, PublishTempPath);
 
-                var dotnetCli = new DotnetCli(ProjectFolder, IsVerbose);
+                var dotnetCli = new DotnetCli(ProjectFileOrFolder, IsVerbose);
                 var warp = new WarpCli(_tempPublishPath, currentPlatform, IsVerbose);
 
                 if (Link != LinkLevel.None)
@@ -109,7 +109,7 @@ namespace DotnetWarp
                 }
 
                 actions.Add(() => dotnetCli.Publish(new DotnetPublishOptions(PublishTempPath, Rid, currentPlatform, isNoRootApplicationAssemblies, IsNoCrossGen)));
-                actions.Add(() => warp.Pack(new WarpPackOptions(currentPlatform, ProjectFolder)));
+                actions.Add(() => warp.Pack(new WarpPackOptions(currentPlatform, ProjectFileOrFolder)));
 
                 if (Link != LinkLevel.None)
                 {
