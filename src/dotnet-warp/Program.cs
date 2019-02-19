@@ -34,11 +34,26 @@ namespace DotnetWarp
                                                    "See issue: https://github.com/mono/linker/issues/314")]
         public bool IsNoCrossGen { get; }
 
+        [Option("-o|--output", Description = "Optional. Output exe path. Defaults to current directory + assembly name.")]
+        public string Output { get; }
+        
         [Option("-v|--verbose", Description = "Optional. Enables verbose output.")]
         public bool IsVerbose { get; }
 
-        private static string _tempPublishPath;
-        private const string PublishTempPath = "dotnetwarp_temp";
+        
+
+        private Context BuildContext()
+        {
+            var context = new Context();
+
+            context.CurrentPlatform = Rid == null ? Platform.Current() :
+                Rid.StartsWith("win") ? Platform.Value.Windows :
+                Rid.StartsWith("osx") ? Platform.Value.MacOs : Platform.Value.Linux;
+
+            context.TempPublishPath = Path.Combine(ProjectFileOrFolder, "dotnetwarp_temp");
+
+            return context;
+        }
 
         private ValidationResult OnValidate()
         {
@@ -83,40 +98,37 @@ namespace DotnetWarp
 
         private void OnExecute()
         {
-            var isNoRootApplicationAssemblies = Link == LinkLevel.Aggressive;
+            if (File.Exists(ProjectFileOrFolder))
+            {
+                ProjectFileOrFolder = Path.GetDirectoryName(ProjectFileOrFolder);
+            }
+            
+            Context context = BuildContext();
 
             try
             {
-                var actions = new List<Expression<Func<bool>>>();
-
-                var currentPlatform = Rid == null                 ? Platform.Current() :
-                                      Rid.StartsWith("win") ? Platform.Value.Windows :
-                                      Rid.StartsWith("osx") ? Platform.Value.MacOs : Platform.Value.Linux;
-
-                if (File.Exists(ProjectFileOrFolder))
-                {
-                    ProjectFileOrFolder = Path.GetDirectoryName(ProjectFileOrFolder);
-                }
-
-                _tempPublishPath = Path.Combine(ProjectFileOrFolder, PublishTempPath);
-
+                var actions = new List<Expression<Func<Context, bool>>>();
+                
                 var dotnetCli = new DotnetCli(ProjectFileOrFolder, IsVerbose);
-                var warp = new WarpCli(_tempPublishPath, currentPlatform, IsVerbose);
+                var warp = new WarpCli(context.CurrentPlatform, IsVerbose);
 
                 if (Link != LinkLevel.None)
                 {
-                    actions.Add(() => dotnetCli.AddLinkerPackage());
+                    actions.Add((ctx) => dotnetCli.AddLinkerPackage());
                 }
+                
+                var isNoRootApplicationAssemblies = Link == LinkLevel.Aggressive;
 
-                actions.Add(() => dotnetCli.Publish(new DotnetPublishOptions(PublishTempPath, Rid, currentPlatform, isNoRootApplicationAssemblies, IsNoCrossGen)));
-                actions.Add(() => warp.Pack(new WarpPackOptions(currentPlatform, ProjectFileOrFolder)));
+                actions.Add((ctx) => dotnetCli.Publish(ctx, new DotnetPublishOptions(Rid, isNoRootApplicationAssemblies, IsNoCrossGen)));
+
+                actions.Add((ctx) => warp.Pack(ctx, new WarpPackOptions(Output)));
 
                 if (Link != LinkLevel.None)
                 {
-                    actions.Add(() => dotnetCli.RemoveLinkerPackage());
+                    actions.Add((ctx) => dotnetCli.RemoveLinkerPackage());
                 }
 
-                RunActions(actions);
+                RunActions(actions, context);
             }
             catch (Exception e)
             {
@@ -132,12 +144,11 @@ namespace DotnetWarp
             }
             finally
             {
-                DeleteTempFolders();
+                context.Dispose();
             }
         }
 
-
-        private void RunActions(List<Expression<Func<bool>>> actions)
+        private void RunActions(List<Expression<Func<Context, bool>>> actions, Context ctx)
         {
             bool errorOccured = false;
             foreach (var action in actions)
@@ -152,7 +163,7 @@ namespace DotnetWarp
                 {
                     spinner.Text = $"Running {((MethodCallExpression) action.Body).Method.Name}...";
                     var hasActionSucceeded = action.Compile()
-                                                   .Invoke();
+                                                   .Invoke(ctx);
 
                     if (hasActionSucceeded)
                     {
@@ -165,19 +176,6 @@ namespace DotnetWarp
                     }
                 });
             }
-        }
-
-        private static void DeleteTempFolders()
-        {
-            var dirsToDelete = new List<string> {_tempPublishPath, "_", "Optimize"};
-
-            dirsToDelete.ForEach(dir =>
-            {
-                if (Directory.Exists(dir))
-                {
-                    Directory.Delete(dir, true);
-                }
-            });
         }
     }
 }

@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using DotnetWarp.CmdCommands.Options;
 using DotnetWarp.Extensions;
 
@@ -22,14 +24,14 @@ namespace DotnetWarp.CmdCommands
             _isVerbose = isVerbose;
         }
 
-        public bool Publish(DotnetPublishOptions dotnetPublishOptions)
+        public bool Publish(Context context, DotnetPublishOptions dotnetPublishOptions)
         {
             var argumentList = new List<string>
             {
                 "publish",
                 "-c Release",
-                $"-r {dotnetPublishOptions.Rid ?? PlatformToRid[dotnetPublishOptions.Platform]}",
-                $"-o {dotnetPublishOptions.OutputPath.WithQuotes()}",
+                $"-r {dotnetPublishOptions.Rid ?? PlatformToRid[context.CurrentPlatform]}",
+                $"-o {context.TempPublishPath.WithQuotes()}",
                 "/p:ShowLinkerSizeComparison=true"
             };
 
@@ -45,7 +47,11 @@ namespace DotnetWarp.CmdCommands
             
             argumentList.Add($"{_projectPath.WithQuotes()}");
 
-            return RunCommand(argumentList, _isVerbose);
+            var isCommandSuccessful = RunCommand(argumentList, _isVerbose);
+
+            UpdateContext(context);
+
+            return isCommandSuccessful;
         }
 
         public bool AddLinkerPackage()
@@ -70,6 +76,15 @@ namespace DotnetWarp.CmdCommands
             };
 
             return RunCommand(argumentList, _isVerbose);
+        }
+        
+        private void UpdateContext(Context context)
+        {
+            var depsFile = Directory.EnumerateFiles(context.TempPublishPath, "*.deps.json").Single();
+            
+            context.AssemblyName = Path.GetFileName(depsFile)
+                                       .Split(".")
+                                       .First();
         }
     }
 }

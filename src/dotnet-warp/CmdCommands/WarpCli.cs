@@ -22,25 +22,25 @@ namespace DotnetWarp.CmdCommands
             [Platform.Value.MacOs] = "macos-x64.warp-packer"
         };
         
-        private readonly string _publishPath;
         private readonly bool _isVerbose;
 
-        public WarpCli(string publishPath, Platform.Value platform, bool isVerbose) : base(GetWarpPath(platform))
+        public WarpCli(Platform.Value platform, bool isVerbose) : base(GetWarpPath(platform))
         {
-            _publishPath = publishPath;
             _isVerbose = isVerbose;
         }
 
-        public bool Pack(WarpPackOptions warpPackOptions)
+        public bool Pack(Context ctx, WarpPackOptions warpPackOptions)
         {
-            var binFileName = warpPackOptions.Platform == Platform.Value.Windows ? warpPackOptions.ProjectName + ".exe" : warpPackOptions.ProjectName;
+            var binFileName = ctx.CurrentPlatform == Platform.Value.Windows ? ctx.AssemblyName + ".exe" : ctx.AssemblyName;
 
             File.Delete(binFileName);
 
+            var outputExePath = warpPackOptions.OutputExePath ?? binFileName.WithQuotes();
+            
             var argumentList = new List<string>
             {
-                $"--arch {PlatformToWarpArch[warpPackOptions.Platform]}",
-                $"--input_dir {_publishPath.WithQuotes()}",
+                $"--arch {PlatformToWarpArch[ctx.CurrentPlatform]}",
+                $"--input_dir {ctx.TempPublishPath.WithQuotes()}",
                 $"--exec {binFileName.WithQuotes()}",
                 $"--output {binFileName.WithQuotes()}"
             };
