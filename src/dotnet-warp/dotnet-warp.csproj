@@ -40,7 +40,6 @@
         <Content Include="warp\macos-x64.warp-packer">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
-        <PackageReference Include="Kurukuru" Version="1.0.0" />
         <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="2.3.2" />
     </ItemGroup>
 

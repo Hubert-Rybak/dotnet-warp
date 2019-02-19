@@ -7,9 +7,7 @@ using System.Linq.Expressions;
 using DotnetWarp.CmdCommands;
 using DotnetWarp.CmdCommands.Options;
 using DotnetWarp.Exceptions;
-using Kurukuru;
 using McMaster.Extensions.CommandLineUtils;
-
 // ReSharper disable UnassignedGetOnlyAutoProperty
 
 namespace DotnetWarp
@@ -29,7 +27,7 @@ namespace DotnetWarp
                                                          "Aggressive means, that application assemblies will not be rooted, and can also be trimmed.")]
         public LinkLevel Link { get; }
 
-        [Option("-nc|--no-crossgen", Description = "Optional linkrt option. Disables Cross Gen during publish. " +
+        [Option("-nc|--no-crossgen", Description = "Optional linker option. Disables Cross Gen during publish. " +
                                                    "Sometimes required for linker to work. " +
                                                    "See issue: https://github.com/mono/linker/issues/314")]
         public bool IsNoCrossGen { get; }
@@ -39,8 +37,6 @@ namespace DotnetWarp
         
         [Option("-v|--verbose", Description = "Optional. Enables verbose output.")]
         public bool IsVerbose { get; }
-
-        
 
         private Context BuildContext()
         {
@@ -150,31 +146,17 @@ namespace DotnetWarp
 
         private void RunActions(List<Expression<Func<Context, bool>>> actions, Context ctx)
         {
-            bool errorOccured = false;
             foreach (var action in actions)
             {
-                if (errorOccured)
+                var actionName = ((MethodCallExpression) action.Body).Method.Name;
+                
+                Console.WriteLine($"Running {actionName}...");
+                var hasActionSucceeded = action.Compile().Invoke(ctx);
+
+                if (!hasActionSucceeded)
                 {
-                    Console.WriteLine("Error occured. Set --verbose flag for more info.");
-                    return;
+                    Console.WriteLine($"{actionName} failed. Set --verbose flag for more info.");
                 }
-
-                Spinner.Start("Packing...", spinner =>
-                {
-                    spinner.Text = $"Running {((MethodCallExpression) action.Body).Method.Name}...";
-                    var hasActionSucceeded = action.Compile()
-                                                   .Invoke(ctx);
-
-                    if (hasActionSucceeded)
-                    {
-                        spinner.Succeed();
-                    }
-                    else
-                    {
-                        spinner.Fail();
-                        errorOccured = true;
-                    }
-                });
             }
         }
     }

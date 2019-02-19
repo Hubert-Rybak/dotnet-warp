@@ -9,7 +9,6 @@ namespace DotnetWarp
         public string AssemblyName { get; set; }
         public string TempPublishPath { get; set; }
         public Platform.Value CurrentPlatform { get; set; }
-//        public string TempFolderName { get; set; }
 
         public void Dispose()
         {
@@ -22,7 +21,6 @@ namespace DotnetWarp
                     Directory.Delete(dir, true);
                 }
             });
-
         }
     }
 }

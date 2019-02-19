@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -35,17 +36,21 @@ namespace DotnetWarp.CmdCommands
 
             File.Delete(binFileName);
 
-            var outputExePath = warpPackOptions.OutputExePath ?? binFileName.WithQuotes();
+            var outputExePath = (warpPackOptions.OutputExePath ?? binFileName).WithQuotes();
             
             var argumentList = new List<string>
             {
                 $"--arch {PlatformToWarpArch[ctx.CurrentPlatform]}",
                 $"--input_dir {ctx.TempPublishPath.WithQuotes()}",
                 $"--exec {binFileName.WithQuotes()}",
-                $"--output {binFileName.WithQuotes()}"
+                $"--output {outputExePath}"
             };
 
-            return RunCommand(argumentList, _isVerbose);
+            var isCommandSuccessful = RunCommand(argumentList, _isVerbose);
+            
+            Console.WriteLine($"Saved binary to {outputExePath}");
+
+            return isCommandSuccessful;
         }
         
         private static string GetWarpPath(Platform.Value platform)

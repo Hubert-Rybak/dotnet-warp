@@ -1,6 +1,3 @@
-using System.IO;
-using System.Linq;
-
 namespace DotnetWarp.CmdCommands.Options
 {
     internal class WarpPackOptions
