@@ -17,7 +17,11 @@ namespace DotnetWarp.CmdCommands.Options
         private string GetProjectName(string projectFolder)
         {
             var projectFile = Directory.EnumerateFiles(projectFolder, "*.csproj")
-                                       .Single();
+                                       .FirstOrDefault();
+
+            if (string.IsNullOrEmpty(projectFile))
+                projectFile = Directory.EnumerateFiles(projectFolder, "*.fsproj")
+                                       .FirstOrDefault();
 
             return Path.GetFileNameWithoutExtension(projectFile);
         }

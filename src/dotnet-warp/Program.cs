@@ -44,9 +44,10 @@ namespace DotnetWarp
         {
             if (File.Exists(ProjectFolder))
             {
-                if (!string.Equals(Path.GetExtension(ProjectFolder), "csproj", StringComparison.OrdinalIgnoreCase))
+                if (!string.Equals(Path.GetExtension(ProjectFolder), "csproj", StringComparison.OrdinalIgnoreCase) &&
+                    !string.Equals(Path.GetExtension(ProjectFolder), "fsproj", StringComparison.OrdinalIgnoreCase))
                 {
-                    return new ValidationResult("Specified file is not .csproj file.");
+                    return new ValidationResult("Specified file is not .csproj or .fsproj file.");
                 }
 
                 ProjectFolder = Path.GetDirectoryName(ProjectFolder);
@@ -55,20 +56,21 @@ namespace DotnetWarp
 
             if (Directory.Exists(ProjectFolder))
             {
-                var csprojsCount = Directory.EnumerateFiles(ProjectFolder, "*.csproj")
-                                            .Count();
+                var projsCount = 
+                    Directory.EnumerateFiles(ProjectFolder, "*.csproj").Count() +
+                    Directory.EnumerateFiles(ProjectFolder, "*.fsproj").Count();
 
-                if (csprojsCount == 0)
+                if (projsCount == 0)
                 {
-                    return new ValidationResult($"No .csproj file found.");
+                    return new ValidationResult($"No .csproj or .fsproj file found.");
                 }
 
-                if (csprojsCount > 1)
+                if (projsCount > 1)
                 {
-                    return new ValidationResult("More than one .csproj file found. Specify single with --project flag.");
+                    return new ValidationResult("More than one .*sproj or .fsproj file found. Specify single with --project flag.");
                 }
 
-                if (csprojsCount == 1)
+                if (projsCount == 1)
                 {
                     return ValidationResult.Success;
                 }
