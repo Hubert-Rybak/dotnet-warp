@@ -21,12 +21,9 @@ namespace DotnetWarp.CmdCommands
 
         public bool Run(IEnumerable<string> argumentList, bool isVerbose)
         {
-            _processStartInfo.ArgumentList.Clear();
+            var arguments = string.Join(' ', argumentList);
             
-            foreach (var argument in argumentList)
-            {
-                _processStartInfo.ArgumentList.Add(argument);
-            }
+            _processStartInfo.Arguments = arguments;
 
             var process = new Process
             {
@@ -36,7 +33,7 @@ namespace DotnetWarp.CmdCommands
             if (isVerbose)
             {
                 process.OutputDataReceived += ProcessOnOutputDataReceived;
-                Console.WriteLine($"Running {process.StartInfo.FileName} {string.Join(' ', argumentList)}");
+                Console.WriteLine($"Running {process.StartInfo.FileName} {arguments}");
             }
             
             process.Start();

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using DotnetWarp.CmdCommands.Options;
+using DotnetWarp.Extensions;
 
 namespace DotnetWarp.CmdCommands
 {
@@ -23,45 +24,51 @@ namespace DotnetWarp.CmdCommands
 
         public bool Publish(DotnetPublishOptions dotnetPublishOptions)
         {
-            var argumentList = new ArgumentList();
-            argumentList.AddArgument("publish");
-            argumentList.AddArgument($"-c Release");
-            argumentList.AddArgument($"-r {dotnetPublishOptions.Rid ?? PlatformToRid[dotnetPublishOptions.Platform]}");
-            argumentList.AddArgument($"-o {dotnetPublishOptions.OutputPath}");
-            argumentList.AddArgument("/p:ShowLinkerSizeComparison=true");
-            
+            var argumentList = new List<string>
+            {
+                "publish",
+                "-c Release",
+                $"-r {dotnetPublishOptions.Rid ?? PlatformToRid[dotnetPublishOptions.Platform]}",
+                $"-o {dotnetPublishOptions.OutputPath.WithQuotes()}",
+                "/p:ShowLinkerSizeComparison=true"
+            };
+
             if (dotnetPublishOptions.IsNoRootApplicationAssemblies)
             {
-                argumentList.AddArgument("/p:RootAllApplicationAssemblies=false");    
+                argumentList.Add("/p:RootAllApplicationAssemblies=false");    
             }
             
             if (dotnetPublishOptions.IsNoCrossGen)
             {
-                argumentList.AddArgument("/p:CrossGenDuringPublish=false");    
+                argumentList.Add("/p:CrossGenDuringPublish=false");    
             }
             
-            argumentList.AddArgument($"{_projectPath}");
+            argumentList.Add($"{_projectPath.WithQuotes()}");
 
             return RunCommand(argumentList, _isVerbose);
         }
 
         public bool AddLinkerPackage()
         {
-            var argumentList = new ArgumentList();
-            argumentList.AddArgument("add");
-            argumentList.AddArgument("package");
-            argumentList.AddArgument("--source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json ILLink.Tasks -v 0.1.5-preview-1841731");
-            
+            var argumentList = new List<string>
+            {
+                "add",
+                "package",
+                "--source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json ILLink.Tasks -v 0.1.5-preview-1841731"
+            };
+
             return RunCommand(argumentList, _isVerbose);
         }
 
         public bool RemoveLinkerPackage()
         {
-            var argumentList = new ArgumentList();
-            argumentList.AddArgument("remove");
-            argumentList.AddArgument("package");
-            argumentList.AddArgument("ILLink.Tasks");
-            
+            var argumentList = new List<string>
+            {
+                "remove", 
+                "package", 
+                "ILLink.Tasks"
+            };
+
             return RunCommand(argumentList, _isVerbose);
         }
     }

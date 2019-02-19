@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using DotnetWarp.CmdCommands.Options;
+using DotnetWarp.Extensions;
 
 namespace DotnetWarp.CmdCommands
 {
@@ -36,13 +36,15 @@ namespace DotnetWarp.CmdCommands
             var binFileName = warpPackOptions.Platform == Platform.Value.Windows ? warpPackOptions.ProjectName + ".exe" : warpPackOptions.ProjectName;
 
             File.Delete(binFileName);
-            
-            var argumentList = new ArgumentList();
-            argumentList.AddArgument($"--arch {PlatformToWarpArch[warpPackOptions.Platform]}");
-            argumentList.AddArgument($"--input_dir {_publishPath}");
-            argumentList.AddArgument($"--exec {binFileName}");
-            argumentList.AddArgument($"--output {binFileName}");
-            
+
+            var argumentList = new List<string>
+            {
+                $"--arch {PlatformToWarpArch[warpPackOptions.Platform]}",
+                $"--input_dir {_publishPath.WithQuotes()}",
+                $"--exec {binFileName.WithQuotes()}",
+                $"--output {binFileName.WithQuotes()}"
+            };
+
             return RunCommand(argumentList, _isVerbose);
         }
         
