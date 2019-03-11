@@ -53,6 +53,11 @@ namespace DotnetWarp
 
         private ValidationResult OnValidate()
         {
+            if (string.IsNullOrEmpty(Path.GetFileName(Output)))
+            {
+                return new ValidationResult("Output should contain full path to file.");
+            }
+            
             if (File.Exists(ProjectFileOrFolder))
             {
                 if (!string.Equals(Path.GetExtension(ProjectFileOrFolder), ".csproj", StringComparison.OrdinalIgnoreCase) &&
@@ -62,6 +67,7 @@ namespace DotnetWarp
                 }
 
                 ProjectFileOrFolder = Path.GetDirectoryName(ProjectFileOrFolder);
+                
                 return ValidationResult.Success;
             }
 
@@ -78,18 +84,11 @@ namespace DotnetWarp
 
                 if (projsCount > 1)
                 {
-                    return new ValidationResult("More than one .*sproj or .fsproj file found. Specify single with --project flag.");
+                    return new ValidationResult("More than one .*csproj or .fsproj file found. Specify single with --project flag.");
                 }
-
-                if (projsCount == 1)
-                {
-                    return ValidationResult.Success;
-                }
-
-                return ValidationResult.Success;
             }
 
-            return new ValidationResult("Not valid project path specified.");
+            return ValidationResult.Success;
         }
 
         private void OnExecute()

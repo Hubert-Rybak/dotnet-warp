@@ -47,8 +47,11 @@ namespace DotnetWarp.CmdCommands
             };
 
             var isCommandSuccessful = RunCommand(argumentList, _isVerbose);
-            
-            Console.WriteLine($"Saved binary to {outputExePath}");
+
+            if (isCommandSuccessful)
+            {
+                Console.WriteLine($"Saved binary to {outputExePath}");
+            }
 
             return isCommandSuccessful;
         }
