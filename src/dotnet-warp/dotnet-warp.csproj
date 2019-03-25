@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
-        <TargetFrameworks>netcoreapp2.2;netcoreapp2.1</TargetFrameworks>
+        <TargetFramework>netcoreapp2.1</TargetFramework>
         <AssemblyName>dotnet-warp</AssemblyName>
 
         <Version>1.0.5</Version>
