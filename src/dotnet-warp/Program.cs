@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using DotnetWarp.CmdCommands;
 using DotnetWarp.CmdCommands.Options;
 using DotnetWarp.Exceptions;
@@ -32,7 +33,7 @@ namespace DotnetWarp
                                                    "See issue: https://github.com/mono/linker/issues/314")]
         public bool IsNoCrossGen { get; }
 
-        [Option("-o|--output", Description = "Optional. Output exe path. Defaults to current directory + assembly name.")]
+        [Option("-o|--output", Description = "Optional. Full output binary path. Defaults to current directory + assembly name.")]
         public string Output { get; }
         
         [Option("-v|--verbose", Description = "Optional. Enables verbose output.")]
@@ -53,11 +54,6 @@ namespace DotnetWarp
 
         private ValidationResult OnValidate()
         {
-            if (string.IsNullOrEmpty(Path.GetFileName(Output)))
-            {
-                return new ValidationResult("Output should contain full path to file.");
-            }
-            
             if (File.Exists(ProjectFileOrFolder))
             {
                 if (!string.Equals(Path.GetExtension(ProjectFileOrFolder), ".csproj", StringComparison.OrdinalIgnoreCase) &&
