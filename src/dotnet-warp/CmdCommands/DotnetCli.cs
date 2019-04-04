@@ -80,11 +80,10 @@ namespace DotnetWarp.CmdCommands
         
         private void UpdateContext(Context context)
         {
-            var depsFile = Directory.EnumerateFiles(context.TempPublishPath, "*.deps.json").Single();
-            
-            context.AssemblyName = Path.GetFileName(depsFile)
-                                       .Split(".")
-                                       .First();
+            const string depsJsonExtension = ".deps.json";
+            var depsJsonPath = Directory.EnumerateFiles(context.TempPublishPath, "*" + depsJsonExtension).Single();
+            var depsJsonFilename = Path.GetFileName(depsJsonPath);
+            context.AssemblyName = depsJsonFilename.Substring(0, depsJsonFilename.Length - depsJsonExtension.Length);
         }
     }
 }
