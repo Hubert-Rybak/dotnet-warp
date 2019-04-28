@@ -10,6 +10,7 @@ namespace DotnetWarp.CmdCommands
     {
         private readonly string _projectPath;
         private readonly bool _isVerbose;
+        private readonly string[] _msbuildProperties;
 
         private static readonly Dictionary<Platform.Value, string> PlatformToRid = new Dictionary<Platform.Value, string>
         {
@@ -18,10 +19,11 @@ namespace DotnetWarp.CmdCommands
             [Platform.Value.MacOs] = "osx-x64"
         };
         
-        public DotnetCli(string projectPath, bool isVerbose) : base("dotnet")
+        public DotnetCli(string projectPath, bool isVerbose, string[] msbuildProperties) : base("dotnet")
         {
             _projectPath = projectPath;
             _isVerbose = isVerbose;
+            _msbuildProperties = msbuildProperties;
         }
 
         public bool Publish(Context context, DotnetPublishOptions dotnetPublishOptions)
@@ -44,7 +46,12 @@ namespace DotnetWarp.CmdCommands
             {
                 argumentList.Add("/p:CrossGenDuringPublish=false");    
             }
-            
+
+            foreach (var prop in _msbuildProperties ?? new string[0])
+            {
+                argumentList.Add($"/p:{prop}");
+            }
+
             argumentList.Add($"{_projectPath.WithQuotes()}");
 
             var isCommandSuccessful = RunCommand(argumentList, _isVerbose);

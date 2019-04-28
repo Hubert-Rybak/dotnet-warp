@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using DotnetWarp.CmdCommands;
 using DotnetWarp.CmdCommands.Options;
 using DotnetWarp.Exceptions;
@@ -38,6 +39,10 @@ namespace DotnetWarp
         
         [Option("-v|--verbose", Description = "Optional. Enables verbose output.")]
         public bool IsVerbose { get; }
+
+        [Option("-p|--property", Description = "Optional. Pass any additional MSBuild properties to 'dotnet publish' command." +
+                                               "Example: -p:Version=2.0.1")]
+        public string[] MsBuildProperties { get; }
 
         private Context BuildContext()
         {
@@ -100,7 +105,7 @@ namespace DotnetWarp
             {
                 var actions = new List<Expression<Func<Context, bool>>>();
                 
-                var dotnetCli = new DotnetCli(ProjectFileOrFolder, IsVerbose);
+                var dotnetCli = new DotnetCli(ProjectFileOrFolder, IsVerbose, MsBuildProperties);
                 var warp = new WarpCli(context.CurrentPlatform, IsVerbose);
 
                 if (Link != LinkLevel.None)
