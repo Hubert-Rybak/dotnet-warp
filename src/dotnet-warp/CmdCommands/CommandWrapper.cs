@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace DotnetWarp.CmdCommands
 {
@@ -19,15 +20,16 @@ namespace DotnetWarp.CmdCommands
             };
         }
 
-        public bool Run(IEnumerable<string> argumentList, bool isVerbose)
+        public int Run(IEnumerable<string> argumentList, bool isVerbose)
         {
             var arguments = string.Join(' ', argumentList);
-            
+
             _processStartInfo.Arguments = arguments;
 
             var process = new Process
             {
-                StartInfo = _processStartInfo
+                StartInfo = _processStartInfo,
+                EnableRaisingEvents = true
             };
 
             if (isVerbose)
@@ -35,20 +37,24 @@ namespace DotnetWarp.CmdCommands
                 process.OutputDataReceived += ProcessOnOutputDataReceived;
                 Console.WriteLine($"Running {process.StartInfo.FileName} {arguments}");
             }
-            
-            process.Start();
 
+            process.Start();
             process.BeginOutputReadLine();
 
-            process.WaitForExit();
-
-            if (isVerbose)
+            if (process.HasExited)
             {
-                process.OutputDataReceived -= ProcessOnOutputDataReceived;
+                Task.FromResult(process.ExitCode);
             }
 
-            return process.ExitCode == 0;
-            
+            var tcs = new TaskCompletionSource<int>();
+            process.Exited += (sender, args) =>
+            {
+                process.OutputDataReceived -= ProcessOnOutputDataReceived;
+                tcs.SetResult(process.ExitCode);
+            };
+
+            return tcs.Task.Result;
+
             void ProcessOnOutputDataReceived(object sender, DataReceivedEventArgs args)
             {
                 Console.WriteLine(args.Data);

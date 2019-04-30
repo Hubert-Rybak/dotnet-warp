@@ -12,7 +12,7 @@ namespace DotnetWarp
             {
                 throw new DotnetWarpException("dotnet-warp only supports x64 architectures.");
             }
-            
+
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 return Value.Windows;
@@ -30,7 +30,7 @@ namespace DotnetWarp
 
             throw new Exception("Unknown platform.");
         }
-        
+
         internal enum Value
         {
             Windows,

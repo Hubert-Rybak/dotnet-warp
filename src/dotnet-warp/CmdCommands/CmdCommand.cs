@@ -10,10 +10,13 @@ namespace DotnetWarp.CmdCommands
         {
             _commandWrapper = new CommandWrapper(command);
         }
-        
+
         protected bool RunCommand(IEnumerable<string> arguments, bool isVerbose)
         {
-            return _commandWrapper.Run(arguments, isVerbose);
+            var exitCode = _commandWrapper.Run(arguments, isVerbose);
+            var isSuccessful = exitCode == 0;
+
+            return isSuccessful;
         }
     }
 }

@@ -4,10 +4,6 @@ using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using DotnetWarp.CmdCommands;
-using DotnetWarp.CmdCommands.Options;
 using DotnetWarp.Exceptions;
 using McMaster.Extensions.CommandLineUtils;
 // ReSharper disable UnassignedGetOnlyAutoProperty
@@ -40,19 +36,15 @@ namespace DotnetWarp
         [Option("-v|--verbose", Description = "Optional. Enables verbose output.")]
         public bool IsVerbose { get; }
 
-        [Option("-p|--property", Description = "Optional. Pass any additional MSBuild properties to 'dotnet publish' command." +
-                                               "Example: -p:Version=2.0.1")]
-        public string[] MsBuildProperties { get; }
+        [Option("-p|--property", Description =
+            "Optional. Pass any additional MSBuild properties to 'dotnet publish' command." +
+            "Example: -p:Version=2.0.1")]
+        
+        public IEnumerable<string> MsBuildProperties { get; } = Enumerable.Empty<string>();
 
         private Context BuildContext()
         {
-            var context = new Context();
-
-            context.CurrentPlatform = Rid == null ? Platform.Current() :
-                Rid.StartsWith("win") ? Platform.Value.Windows :
-                Rid.StartsWith("osx") ? Platform.Value.MacOs : Platform.Value.Linux;
-
-            context.TempPublishPath = Path.Combine(ProjectFileOrFolder, "dotnetwarp_temp");
+            var context = new Context(Rid, ProjectFileOrFolder, IsVerbose, MsBuildProperties, Link, IsNoCrossGen, Output);
 
             return context;
         }
@@ -72,21 +64,19 @@ namespace DotnetWarp
                 return ValidationResult.Success;
             }
 
-            if (Directory.Exists(ProjectFileOrFolder))
+            if (!Directory.Exists(ProjectFileOrFolder)) return ValidationResult.Success;
+            var projsCount = 
+                Directory.EnumerateFiles(ProjectFileOrFolder, "*.csproj").Count() +
+                Directory.EnumerateFiles(ProjectFileOrFolder, "*.fsproj").Count();
+
+            if (projsCount == 0)
             {
-                var projsCount = 
-                    Directory.EnumerateFiles(ProjectFileOrFolder, "*.csproj").Count() +
-                    Directory.EnumerateFiles(ProjectFileOrFolder, "*.fsproj").Count();
+                return new ValidationResult($"No .csproj or .fsproj file found.");
+            }
 
-                if (projsCount == 0)
-                {
-                    return new ValidationResult($"No .csproj or .fsproj file found.");
-                }
-
-                if (projsCount > 1)
-                {
-                    return new ValidationResult("More than one .*csproj or .fsproj file found. Specify single with --project flag.");
-                }
+            if (projsCount > 1)
+            {
+                return new ValidationResult("More than one .*csproj or .fsproj file found. Specify single with --project flag.");
             }
 
             return ValidationResult.Success;
@@ -99,36 +89,19 @@ namespace DotnetWarp
                 ProjectFileOrFolder = Path.GetDirectoryName(ProjectFileOrFolder);
             }
             
-            Context context = BuildContext();
+            var context = BuildContext();
 
             try
             {
-                var actions = new List<Expression<Func<Context, bool>>>();
-                
-                var dotnetCli = new DotnetCli(ProjectFileOrFolder, IsVerbose, MsBuildProperties);
-                var warp = new WarpCli(context.CurrentPlatform, IsVerbose);
-
-                if (Link != LinkLevel.None)
-                {
-                    actions.Add((ctx) => dotnetCli.AddLinkerPackage());
-                }
-                
-                var isNoRootApplicationAssemblies = Link == LinkLevel.Aggressive;
-
-                actions.Add((ctx) => dotnetCli.Publish(ctx, new DotnetPublishOptions(Rid, isNoRootApplicationAssemblies, IsNoCrossGen)));
-
-                actions.Add((ctx) => warp.Pack(ctx, new WarpPackOptions(Output)));
-
-                if (Link != LinkLevel.None)
-                {
-                    actions.Add((ctx) => dotnetCli.RemoveLinkerPackage());
-                }
+                var actionBuilder = new ActionsBuilder();
+                var actions = actionBuilder.GetActionsForContext(context);
 
                 RunActions(actions, context);
             }
             catch (Exception e)
             {
                 Environment.ExitCode = 1;
+                
                 if (IsVerbose)
                 {
                     throw;
@@ -144,7 +117,7 @@ namespace DotnetWarp
             }
         }
 
-        private void RunActions(List<Expression<Func<Context, bool>>> actions, Context ctx)
+        private void RunActions(IEnumerable<Expression<Func<Context, bool>>> actions, Context ctx)
         {
             foreach (var action in actions)
             {
@@ -156,6 +129,7 @@ namespace DotnetWarp
                 if (!hasActionSucceeded)
                 {
                     Console.WriteLine($"{actionName} failed. Set --verbose flag for more info.");
+                    Environment.Exit(1);
                 }
             }
         }

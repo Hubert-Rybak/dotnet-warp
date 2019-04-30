@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using DotnetWarp.CmdCommands.Options;
 using DotnetWarp.Extensions;
@@ -10,7 +9,7 @@ namespace DotnetWarp.CmdCommands
     {
         private readonly string _projectPath;
         private readonly bool _isVerbose;
-        private readonly string[] _msbuildProperties;
+        private readonly IEnumerable<string> _msbuildProperties;
 
         private static readonly Dictionary<Platform.Value, string> PlatformToRid = new Dictionary<Platform.Value, string>
         {
@@ -19,7 +18,7 @@ namespace DotnetWarp.CmdCommands
             [Platform.Value.MacOs] = "osx-x64"
         };
         
-        public DotnetCli(string projectPath, bool isVerbose, string[] msbuildProperties) : base("dotnet")
+        public DotnetCli(string projectPath, bool isVerbose, IEnumerable<string> msbuildProperties) : base(command: "dotnet")
         {
             _projectPath = projectPath;
             _isVerbose = isVerbose;
@@ -33,8 +32,7 @@ namespace DotnetWarp.CmdCommands
                 "publish",
                 "-c Release",
                 $"-r {dotnetPublishOptions.Rid ?? PlatformToRid[context.CurrentPlatform]}",
-                $"-o {context.TempPublishPath.WithQuotes()}",
-                "/p:ShowLinkerSizeComparison=true"
+                $"-o {context.TempPublishPath.WithQuotes()}"
             };
 
             if (dotnetPublishOptions.IsNoRootApplicationAssemblies)
@@ -47,16 +45,16 @@ namespace DotnetWarp.CmdCommands
                 argumentList.Add("/p:CrossGenDuringPublish=false");    
             }
 
-            foreach (var prop in _msbuildProperties ?? new string[0])
-            {
-                argumentList.Add($"/p:{prop}");
-            }
+            argumentList.AddRange(_msbuildProperties.Select(prop => $"/p:{prop}"));
 
             argumentList.Add($"{_projectPath.WithQuotes()}");
 
             var isCommandSuccessful = RunCommand(argumentList, _isVerbose);
 
-            UpdateContext(context);
+            if (isCommandSuccessful)
+            {
+                context.FindAssemblyName();
+            }
 
             return isCommandSuccessful;
         }
@@ -83,14 +81,6 @@ namespace DotnetWarp.CmdCommands
             };
 
             return RunCommand(argumentList, _isVerbose);
-        }
-        
-        private void UpdateContext(Context context)
-        {
-            const string depsJsonExtension = ".deps.json";
-            var depsJsonPath = Directory.EnumerateFiles(context.TempPublishPath, "*" + depsJsonExtension).Single();
-            var depsJsonFilename = Path.GetFileName(depsJsonPath);
-            context.AssemblyName = depsJsonFilename.Substring(0, depsJsonFilename.Length - depsJsonExtension.Length);
         }
     }
 }
