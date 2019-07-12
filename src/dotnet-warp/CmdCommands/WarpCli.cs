@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using DotnetWarp.CmdCommands.Options;
 using DotnetWarp.Extensions;
 
@@ -17,17 +18,9 @@ namespace DotnetWarp.CmdCommands
                 [Platform.Value.MacOs] = "macos-x64"
             };
 
-        private static readonly Dictionary<Platform.Value, string> PlatformToWarpBinary =
-            new Dictionary<Platform.Value, string>
-            {
-                [Platform.Value.Windows] = "windows-x64.warp-packer.exe",
-                [Platform.Value.Linux] = "linux-x64.warp-packer",
-                [Platform.Value.MacOs] = "macos-x64.warp-packer"
-            };
-
         private readonly bool _isVerbose;
 
-        public WarpCli(Platform.Value platform, bool isVerbose) : base(GetWarpPath(platform))
+        public WarpCli(bool isVerbose) : base(GetWarpPath())
         {
             _isVerbose = isVerbose;
         }
@@ -56,10 +49,19 @@ namespace DotnetWarp.CmdCommands
             return isCommandSuccessful;
         }
 
-        private static string GetWarpPath(Platform.Value platform)
+        private static string GetWarpPath()
         {
+            string warpPacker;
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                warpPacker = "linux-x64.warp-packer";
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                warpPacker = "macos-x64.warp-packer";
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                warpPacker = "windows-x64.warp-packer.exe";
+            else
+                throw new PlatformNotSupportedException();
             return Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly()
-                                                              .Location), "warp", PlatformToWarpBinary[platform]);
+                                                              .Location), "warp", warpPacker);
         }
     }
 }

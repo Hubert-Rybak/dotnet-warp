@@ -13,7 +13,7 @@ namespace DotnetWarp
             var actions = new List<Expression<Func<Context, bool>>>();
 
             var dotnetCli = new DotnetCli(context.ProjectFileOrFolder, context.IsVerbose, context.MsBuildProperties);
-            var warp = new WarpCli(context.CurrentPlatform, context.IsVerbose);
+            var warp = new WarpCli(context.IsVerbose);
 
             var wasLinkerPackageAdded = false;
             if (context.ShouldAddLinkerPackage)
