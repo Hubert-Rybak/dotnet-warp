@@ -49,6 +49,6 @@ $ dotnet-warp -l aggressive
 ```
 
 ```bash
-$ dotnet-warp -p Version:2.0.1
+$ dotnet-warp -p:Version=2.0.1
 ```
 Aggressive option sets /p:RootAllApplicationAssemblies=false during publish. [More info](https://github.com/mono/linker/blob/fbe310a0c018ddcd701fe9ff91aa61ec6c026221/corebuild/README.md#options) 
