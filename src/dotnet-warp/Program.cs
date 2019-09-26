@@ -39,12 +39,15 @@ namespace DotnetWarp
         [Option("-p|--property", Description =
             "Optional. Pass any additional MSBuild properties to 'dotnet publish' command." +
             "Example: -p:Version=2.0.1")]
-        
         public IEnumerable<string> MsBuildProperties { get; } = Enumerable.Empty<string>();
+
+        [Option("-f|--framework", Description =
+             "Publishes the application for the specified target framework. You must specify the target framework in the project file.")]
+        public string TargetFramework { get; }
 
         private Context BuildContext()
         {
-            var context = new Context(Rid, ProjectFileOrFolder, IsVerbose, MsBuildProperties, Link, IsNoCrossGen, Output);
+            var context = new Context(Rid, ProjectFileOrFolder, IsVerbose, MsBuildProperties, Link, IsNoCrossGen, TargetFramework, Output);
 
             return context;
         }

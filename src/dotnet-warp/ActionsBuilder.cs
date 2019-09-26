@@ -23,7 +23,7 @@ namespace DotnetWarp
             }
 
             actions.Add(ctx =>
-                dotnetCli.Publish(ctx, new DotnetPublishOptions(context.Rid, context.ShouldNotRootApplicationAssemblies, context.IsNoCrossGen)));
+                dotnetCli.Publish(ctx, new DotnetPublishOptions(context.Rid, context.ShouldNotRootApplicationAssemblies, context.IsNoCrossGen, context.TargetFramework)));
 
             actions.Add(ctx => warp.Pack(ctx, new WarpPackOptions(context.OutputPath)));
 

@@ -35,6 +35,11 @@ namespace DotnetWarp.CmdCommands
                 $"-o {context.TempPublishPath.WithQuotes()}"
             };
 
+            if (string.IsNullOrWhiteSpace(dotnetPublishOptions.TargetFramework))
+            {
+                argumentList.Add($"-f {dotnetPublishOptions.TargetFramework}");    
+            }
+
             if (dotnetPublishOptions.IsNoRootApplicationAssemblies)
             {
                 argumentList.Add("/p:RootAllApplicationAssemblies=false");    

@@ -13,6 +13,7 @@ namespace DotnetWarp
             IEnumerable<string> msBuildProperties,
             LinkLevel link,
             bool isNoCrossGen,
+            string targetFramework,
             string outputPath)
         {
             Rid = rid;
@@ -28,6 +29,7 @@ namespace DotnetWarp
                 rid.StartsWith("osx") ? Platform.Value.MacOs : Platform.Value.Linux;
 
             TempPublishPath = Path.Combine(projectFileOrFolder, "dotnetwarp_temp");
+            TargetFramework = targetFramework;
         }
 
         public string AssemblyName { get; private set; }
@@ -42,6 +44,7 @@ namespace DotnetWarp
         public bool ShouldNotRootApplicationAssemblies => Link == LinkLevel.Aggressive;
         public string Rid { get; }
         public bool IsNoCrossGen { get; }
+        public string TargetFramework { get; }
         public string OutputPath { get; }
 
         public string OutputExeName => CurrentPlatform == Platform.Value.Windows
