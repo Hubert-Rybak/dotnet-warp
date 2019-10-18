@@ -2,15 +2,8 @@
 Assembly trimming via this tool will not work on .NET Core 3.0 (so you could only pack app with this tool without trimming).
 Recommended approach is to use built-in functionality in 3.0 for trimming and packing.
 
-So this global tools should really be used on 2.0/2.1/2.2 .NET Core apps.
+Sample approach: https://www.hanselman.com/blog/MakingATinyNETCore30EntirelySelfcontainedSingleExecutable.aspx
 
-Single file deployment with trimming on .NET Core 3.0 is done with:
-
-``` bash
-dotnet publish -c Release -r <win-x64|linux-x64|osx-x64> /p:PublishSingleFile=true /p:PublishTrimmed=true
-```
-
-Note that built-in .NET Core 3.0 approach also packs and unpacks application at runtime.
 
 dotnet-warp
 ================
