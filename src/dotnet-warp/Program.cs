@@ -57,9 +57,10 @@ namespace DotnetWarp
             if (File.Exists(ProjectFileOrFolder))
             {
                 if (!string.Equals(Path.GetExtension(ProjectFileOrFolder), ".csproj", StringComparison.OrdinalIgnoreCase) &&
-                    !string.Equals(Path.GetExtension(ProjectFileOrFolder), ".fsproj", StringComparison.OrdinalIgnoreCase))
+                    !string.Equals(Path.GetExtension(ProjectFileOrFolder), ".fsproj", StringComparison.OrdinalIgnoreCase) &&
+                    !string.Equals(Path.GetExtension(ProjectFileOrFolder), ".vbproj", StringComparison.OrdinalIgnoreCase))
                 {
-                    return new ValidationResult("Specified file is not .csproj or .fsproj file.");
+                    return new ValidationResult("Specified file is not .csproj, .fsproj, or .vbproj file.");
                 }
 
                 ProjectFileOrFolder = Path.GetDirectoryName(ProjectFileOrFolder);
@@ -70,16 +71,17 @@ namespace DotnetWarp
             if (!Directory.Exists(ProjectFileOrFolder)) return ValidationResult.Success;
             var projsCount = 
                 Directory.EnumerateFiles(ProjectFileOrFolder, "*.csproj").Count() +
-                Directory.EnumerateFiles(ProjectFileOrFolder, "*.fsproj").Count();
+                Directory.EnumerateFiles(ProjectFileOrFolder, "*.fsproj").Count() +
+                Directory.EnumerateFiles(ProjectFileOrFolder, "*.vbproj").Count();
 
             if (projsCount == 0)
             {
-                return new ValidationResult($"No .csproj or .fsproj file found.");
+                return new ValidationResult($"No .csproj, .fsproj, or .vbproj file found.");
             }
 
             if (projsCount > 1)
             {
-                return new ValidationResult("More than one .*csproj or .fsproj file found. Specify single with --project flag.");
+                return new ValidationResult("More than one .*csproj, .fsproj, or .vbproj file found. Specify single with --project flag.");
             }
 
             return ValidationResult.Success;
